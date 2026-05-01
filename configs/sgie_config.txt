@@ -10,7 +10,7 @@ gie-unique-id=2
 # ---- MobileFaceNet Preprocessing ---- #
 # Normalization: (pixel - 127.5) * 0.0078125 = (pixel - 127.5) / 128
 net-scale-factor=0.0078125
-offsets=127.5;127.5;127.5
+offsets=127.5;127.5;127.5p
 model-color-format=0
 
 # ---- Model Files ---- #
