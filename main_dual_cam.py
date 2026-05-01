@@ -443,7 +443,7 @@ def create_source_bin(index, uri):
             "child-added",
             lambda child_proxy, obj, name, user_data:
                 obj.set_property("drop-on-latency", True)
-                if name.find("decodebin") != -1 else None,
+                if name.find("source") != -1 else None,
             nbin)
         Gst.Bin.add(nbin, uri_decode_bin)
     else:
@@ -510,6 +510,7 @@ def main(args):
     streammux.set_property('width', 960)
     streammux.set_property('height', 540)
     streammux.set_property('batch-size', num_sources)
+    streammux.set_property('live-source', 1)
     streammux.set_property('batched-push-timeout', MUXER_BATCH_TIMEOUT)
     streammux.set_property('nvbuf-memory-type', 0)
     pipeline.add(streammux)
