@@ -5,13 +5,17 @@ import random
 import threading
 import requests
 from datetime import datetime
+import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # ==========================================
-# SUPABASE CONFIGURATION
-# Insert your Supabase URL and API keys here
+# BACKEND CONFIGURATION
 # ==========================================
-SUPABASE_URL = "https://qrdltmilpumiirtrwkhv.supabase.co/rest/v1/attendance_logs"
-SUPABASE_API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFyZGx0bWlscHVtaWlydHJ3a2h2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwODk3NTcsImV4cCI6MjA5NDY2NTc1N30.4BdlQSX1_YKrHBIGyBrZcIbs973XT5KAgTC3qVd62Ao"
+BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:3000/api/events/attendance")
+SERVICE_API_KEY = os.getenv("SERVICE_API_KEY", "")
 
 # Queue for non-blocking HTTP requests
 _log_queue = queue.Queue()
@@ -34,10 +38,8 @@ def generate_dummy_event():
 def _http_worker():
     """Background thread worker to process the queue and send HTTP requests."""
     headers = {
-        "apikey": SUPABASE_API_KEY,
-        "Authorization": f"Bearer {SUPABASE_API_KEY}",
-        "Content-Type": "application/json",
-        "Prefer": "return=minimal"
+        "x-api-key": SERVICE_API_KEY,
+        "Content-Type": "application/json"
     }
     
     print("[CLOUD] Background worker thread started. Waiting for data...")
@@ -49,7 +51,7 @@ def _http_worker():
             
             try:
                 print(f"[HTTP] Sending data for {payload['student_id']} from {payload['camera_id']}...")
-                response = requests.post(SUPABASE_URL, json=payload, headers=headers, timeout=5.0)
+                response = requests.post(BACKEND_URL, json=payload, headers=headers, timeout=5.0)
                 response.raise_for_status()
                 print(f"[HTTP SUCCESS] Data logged successfully.")
             except requests.exceptions.RequestException as e:
