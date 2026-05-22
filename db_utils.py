@@ -1,14 +1,9 @@
 import sqlite3
-import csv
 import os
 import numpy as np
 from datetime import datetime
 
 DB_PATH = 'attendance.db'
-CSV_PATH = 'attendance.csv'
-
-# Minimum seconds between duplicate CSV rows for the same student
-CSV_DEDUP_WINDOW_SEC = 300  # 5 minutes — covers a single class period
 
 
 def init_db():
@@ -96,95 +91,25 @@ def load_all_embeddings():
     return users
 
 
-def _init_csv():
-    """Create the CSV file with headers if it doesn't exist."""
-    if not os.path.exists(CSV_PATH):
-        with open(CSV_PATH, 'w', newline='') as f:
-            writer = csv.writer(f)
-            writer.writerow(['Name', 'Date', 'Time'])
-
-
-def _is_duplicate_csv_entry(name, now):
-    """
-    Check the tail of the CSV to see if this student was logged
-    within the last CSV_DEDUP_WINDOW_SEC seconds.
-    
-    This prevents the CSV from bloating with repeated entries
-    for the same student during a single class session.
-    """
-    if not os.path.exists(CSV_PATH):
-        return False
-
-    try:
-        with open(CSV_PATH, 'r', newline='') as f:
-            reader = csv.reader(f)
-            rows = list(reader)
-    except Exception:
-        return False
-
-    # Walk backwards through the CSV (skip header)
-    for row in reversed(rows[1:]):
-        if len(row) < 3:
-            continue
-        csv_name, csv_date, csv_time = row[0], row[1], row[2]
-        try:
-            csv_dt = datetime.strptime(f"{csv_date} {csv_time}", "%Y-%m-%d %H:%M:%S")
-        except ValueError:
-            continue
-
-        # Only check entries for the same student
-        if csv_name != name:
-            continue
-
-        delta = (now - csv_dt).total_seconds()
-        if delta < CSV_DEDUP_WINDOW_SEC:
-            return True  # duplicate — too recent
-        else:
-            break  # older entry found, no need to keep searching
-
-    return False
 
 
 def log_attendance(user_id, camera_id, student_name=None):
     """
-    Logs attendance to BOTH the SQLite Logs table AND attendance.csv.
+    Logs attendance to the SQLite Logs table.
     
     Args:
         user_id: The SQLite user_id (integer).
         camera_id: The camera/source that recognised the student.
-        student_name: The display name for CSV logging. If None,
-                      we look it up from the DB.
+        student_name: The display name (optional).
     """
     # --- SQLite log (unchanged) ---
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute('INSERT INTO Logs (user_id, camera_id) VALUES (?, ?)', (user_id, camera_id))
     conn.commit()
-
-    # --- Resolve name if not provided ---
-    if student_name is None:
-        c.execute('SELECT name FROM Users WHERE user_id = ?', (user_id,))
-        row = c.fetchone()
-        student_name = row[0] if row else f"user_{user_id}"
     conn.close()
-
-    # --- CSV log with dedup throttle ---
-    _init_csv()
-    now = datetime.now()
-
-    if _is_duplicate_csv_entry(student_name, now):
-        return  # silently skip — already logged recently
-
-    with open(CSV_PATH, 'a', newline='') as f:
-        writer = csv.writer(f)
-        writer.writerow([
-            student_name,
-            now.strftime('%Y-%m-%d'),
-            now.strftime('%H:%M:%S')
-        ])
 
 
 if __name__ == "__main__":
     init_db()
-    _init_csv()
-    print("Database and CSV initialized successfully.")
+    print("Database initialized successfully.")

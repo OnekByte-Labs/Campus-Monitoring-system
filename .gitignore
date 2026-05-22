@@ -18,4 +18,8 @@ nvdsinfer_custom_impl_Yolo/
 
 # Python caches
 __pycache__/
-*.pyc   
+*.pyc
+
+# Node.js / Backend Service
+node_modules/
+.env

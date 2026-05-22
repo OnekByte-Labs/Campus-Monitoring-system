@@ -24,6 +24,7 @@ from gi.repository import Gst, GLib
 import pyds
 
 from db_utils import load_all_embeddings, log_attendance
+from cloud_utils import start_cloud_logger, stop_cloud_logger, send_to_cloud
 
 # ======================== GLOBALS & CONSTANTS ======================== #
 
@@ -325,6 +326,7 @@ def osd_sink_pad_buffer_probe(pad, info, u_data):
                                 or now - last_logged[user_id] > COOLDOWN_SEC):
                             log_attendance(user_id, source_id,
                                           student_name=name)
+                            send_to_cloud(name, source_id, score)
                             last_logged[user_id] = now
                             print(f"[ATTENDANCE] {name} "
                                   f"logged on cam {source_id}")
@@ -617,6 +619,7 @@ def main(args):
     bus.connect("message", bus_call, loop)
 
     print("\nStarting pipeline — press Ctrl+C to stop\n")
+    start_cloud_logger()
     pipeline.set_state(Gst.State.PLAYING)
 
     try:
@@ -627,6 +630,7 @@ def main(args):
         pass
 
     print("Exiting app...")
+    stop_cloud_logger()
     pipeline.set_state(Gst.State.NULL)
 
 if __name__ == '__main__':
