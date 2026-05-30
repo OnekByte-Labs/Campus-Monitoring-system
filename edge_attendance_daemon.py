@@ -12,6 +12,7 @@ Edge Integration:
   Includes 5-minute DB cooldown and throttled terminal monitoring.
 """
 
+from os import name
 import gi
 import sys
 import os
@@ -98,8 +99,10 @@ def sync_daemon(mqtt_client):
                 
             for row in rows:
                 event_id, student_id, timestamp, similarity_score = row
+                # Inside your Python sync_daemon thread:
                 payload = {
                     "student_id": student_id,
+                    "student_name": name,  # Adding the string name to the JSON payload
                     "timestamp": int(timestamp),
                     "similarity_score": float(similarity_score)
                 }

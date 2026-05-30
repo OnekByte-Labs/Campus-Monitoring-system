@@ -20,7 +20,7 @@ const client = mqtt.connect(BROKER_URL);
 // --- MQTT Event Handlers ---
 client.on('connect', () => {
   console.log(`✅ Node.js Backend connected to MQTT Broker at ${BROKER_URL}`);
-  
+
   // Subscribe to all gate attendance topics
   const topic = 'campus/gates/+/attendance';
   client.subscribe(topic, { qos: 1 }, (err) => {
@@ -48,14 +48,17 @@ client.on('offline', () => {
 client.on('message', async (topic, message) => {
   try {
     const eventData = JSON.parse(message.toString());
-    console.log(`\n📥 Received event from [${topic}]:`, eventData);
 
-    const { student_id, timestamp, similarity_score } = eventData;
+    // Extract student_name along with the other fields
+    const { student_id, student_name, timestamp, similarity_score } = eventData;
 
-    // Validate payload fields
+    // Validate payload fields (student_name is optional here to prevent crashes if old payloads arrive)
     if (!student_id || !timestamp || similarity_score === undefined) {
       throw new Error('Invalid payload: missing required fields');
     }
+
+    const displayName = student_name || "Unknown Student";
+    console.log(`\n📥 Received event from [${topic}]: ${displayName} (${student_id})`);
 
     // Insert into Supabase using the REST SDK
     const { error } = await supabase
@@ -63,6 +66,7 @@ client.on('message', async (topic, message) => {
       .insert([
         {
           student_id: student_id,
+          student_name: student_name, // Make sure this column exists in your Supabase table!
           // Convert Unix timestamp (seconds) to an ISO date string
           timestamp: new Date(timestamp * 1000).toISOString(),
           similarity_score: similarity_score
@@ -70,9 +74,11 @@ client.on('message', async (topic, message) => {
       ]);
 
     if (error) {
-      console.error('❌ Supabase Insert Error:', error.message);
+      console.error(`❌ Supabase Insert Error for ${displayName}:`, error.message);
     } else {
-      console.log(`✅ Successfully logged attendance for ${student_id} to Supabase`);
+      console.log(`==================================================`);
+      console.log(`✅ Attendance permanently logged for: ${displayName}`);
+      console.log(`==================================================`);
     }
 
   } catch (error) {
