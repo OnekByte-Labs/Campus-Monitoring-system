@@ -8,7 +8,8 @@ Architecture:
 
 Edge Integration:
   Replaces synchronous HTTP cloud logging with a thread-safe local 
-  SQLite buffer and a background MQTT synchronization daemon.
+  SQLite buffer and a background MQTT synchronization daemon. 
+  Includes 5-minute DB cooldown and throttled terminal monitoring.
 """
 
 import gi
@@ -27,7 +28,7 @@ gi.require_version('Gst', '1.0')
 from gi.repository import Gst, GLib
 import pyds
 
-# Only import the local watchlist loader (Cloud utils have been replaced by MQTT)
+# Only import the local watchlist loader
 from db_utils import load_all_embeddings
 
 # ======================== EDGE DAEMON CONFIG ======================== #
@@ -37,7 +38,7 @@ PORT = 1883
 TOPIC = 'campus/gates/gate_1/attendance'
 
 # ======================== DEEPSTREAM GLOBALS ======================== #
-COOLDOWN_SEC          = 5          # seconds between re-logging same person
+COOLDOWN_SEC          = 300        # 5 minutes between re-logging same person to DB
 SIMILARITY_THRESHOLD  = 0.40       # cosine-similarity floor
 MUXER_BATCH_TIMEOUT   = 40000      # microseconds
 CACHE_EVICT_INTERVAL  = 100        # frames between stale-ID cleanup
@@ -78,7 +79,6 @@ def save_to_buffer(student_id, similarity_score):
         ''', (student_id, current_timestamp, similarity_score))
         conn.commit()
         conn.close()
-        print(f"[BUFFER] 📥 Saved {student_id} to edge buffer (Score: {similarity_score:.2f})")
     except Exception as e:
         print(f"[BUFFER ERROR] ❌ Failed to save to local DB: {e}")
 
@@ -258,13 +258,19 @@ def osd_sink_pad_buffer_probe(pad, info, u_data):
                 if cached_name is not None:
                     _apply_recognised_overlay(obj_meta, cached_name, cached_score)
 
-                    # LOG TO BUFFER (Replaces synchronous cloud API)
+                    # 1. CONTINUOUS TERMINAL OUTPUT (Throttled)
+                    if frame_counter % 15 == 0: 
+                        print(f"[VISION] 👀 Tracking: {cached_name}")
+
+                    # 2. DATABASE COOLDOWN LOGIC
                     uid = _uid_for_name(cached_name)
                     if uid is not None:
                         if (uid not in last_logged or now - last_logged[uid] > COOLDOWN_SEC):
                             save_to_buffer(uid, cached_score)
                             last_logged[uid] = now
-                            print(f"[ATTENDANCE] {cached_name} logged via cache on cam {source_id}")
+                            print(f"==================================================")
+                            print(f"[ATTENDANCE] 💾 {cached_name} officially logged to DB via Cache!")
+                            print(f"==================================================")
 
                     try:
                         l_obj = l_obj.next
@@ -319,11 +325,17 @@ def osd_sink_pad_buffer_probe(pad, info, u_data):
                         _apply_recognised_overlay(obj_meta, name, score)
                         track_id_cache[obj_id] = (name, score, frame_counter)
                         
-                        # LOG TO BUFFER (Replaces synchronous cloud API)
+                        # 1. CONTINUOUS TERMINAL OUTPUT
+                        print(f"[VISION] 🎯 New Match Found: {name}!")
+                        
+                        # 2. DATABASE COOLDOWN LOGIC
                         if (user_id not in last_logged or now - last_logged[user_id] > COOLDOWN_SEC):
                             save_to_buffer(user_id, score)
                             last_logged[user_id] = now
-                            print(f"[ATTENDANCE] {name} logged via SGIE on cam {source_id}")
+                            print(f"==================================================")
+                            print(f"[ATTENDANCE] 💾 {name} officially logged to DB via SGIE!")
+                            print(f"==================================================")
+                        
                         recognised = True
                     else:
                         track_id_cache[obj_id] = (None, score, frame_counter)
