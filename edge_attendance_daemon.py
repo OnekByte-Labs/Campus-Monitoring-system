@@ -9,10 +9,10 @@ Architecture:
 Edge Integration:
   Replaces synchronous HTTP cloud logging with a thread-safe local 
   SQLite buffer and a background MQTT synchronization daemon. 
-  Includes 5-minute DB cooldown and throttled terminal monitoring.
+  Includes 5-minute DB cooldown, throttled terminal monitoring, 
+  and explicit name passing to prevent OS variable bleed.
 """
 
-from os import name
 import gi
 import sys
 import os
@@ -53,43 +53,44 @@ track_id_cache = {}                # {object_id: (display_name, best_score, last
 # ======================== EDGE DAEMON LOGIC ======================== #
 
 def init_db():
-    """Initializes the local SQLite database buffer."""
+    """Initializes the local SQLite database buffer with student_name."""
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS events (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             student_id TEXT NOT NULL,
+            student_name TEXT NOT NULL,
             timestamp REAL NOT NULL,
             similarity_score REAL NOT NULL
         )
     ''')
     conn.commit()
     conn.close()
-    print("[DB] Initialized local SQLite buffer database.")
+    print("[DB] Initialized local SQLite buffer database with student_name support.")
 
-def save_to_buffer(student_id, similarity_score):
-    """Instantly saves a detection event to the local database."""
+def save_to_buffer(student_id, student_name, similarity_score):
+    """Instantly saves a detection event and name to the local database."""
     current_timestamp = time.time()
     try:
         conn = sqlite3.connect(DB_FILE)
         cursor = conn.cursor()
         cursor.execute('''
-            INSERT INTO events (student_id, timestamp, similarity_score)
-            VALUES (?, ?, ?)
-        ''', (student_id, current_timestamp, similarity_score))
+            INSERT INTO events (student_id, student_name, timestamp, similarity_score)
+            VALUES (?, ?, ?, ?)
+        ''', (student_id, student_name, current_timestamp, similarity_score))
         conn.commit()
         conn.close()
     except Exception as e:
         print(f"[BUFFER ERROR] ❌ Failed to save to local DB: {e}")
 
 def sync_daemon(mqtt_client):
-    """Background thread to push local SQLite logs to MQTT broker."""
+    """Background thread to push local SQLite logs (including name) to MQTT broker."""
     while True:
         try:
             conn = sqlite3.connect(DB_FILE)
             cursor = conn.cursor()
-            cursor.execute('SELECT id, student_id, timestamp, similarity_score FROM events ORDER BY id ASC LIMIT 50')
+            cursor.execute('SELECT id, student_id, student_name, timestamp, similarity_score FROM events ORDER BY id ASC LIMIT 50')
             rows = cursor.fetchall()
             
             if not rows:
@@ -98,11 +99,11 @@ def sync_daemon(mqtt_client):
                 continue
                 
             for row in rows:
-                event_id, student_id, timestamp, similarity_score = row
-                # Inside your Python sync_daemon thread:
+                event_id, student_id, student_name, timestamp, similarity_score = row
+                
                 payload = {
                     "student_id": student_id,
-                    "student_name": name,  # Adding the string name to the JSON payload
+                    "student_name": student_name,
                     "timestamp": int(timestamp),
                     "similarity_score": float(similarity_score)
                 }
@@ -269,7 +270,8 @@ def osd_sink_pad_buffer_probe(pad, info, u_data):
                     uid = _uid_for_name(cached_name)
                     if uid is not None:
                         if (uid not in last_logged or now - last_logged[uid] > COOLDOWN_SEC):
-                            save_to_buffer(uid, cached_score)
+                            # Passing the explicit name here
+                            save_to_buffer(uid, cached_name, cached_score)
                             last_logged[uid] = now
                             print(f"==================================================")
                             print(f"[ATTENDANCE] 💾 {cached_name} officially logged to DB via Cache!")
@@ -333,7 +335,8 @@ def osd_sink_pad_buffer_probe(pad, info, u_data):
                         
                         # 2. DATABASE COOLDOWN LOGIC
                         if (user_id not in last_logged or now - last_logged[user_id] > COOLDOWN_SEC):
-                            save_to_buffer(user_id, score)
+                            # Passing the explicit name here
+                            save_to_buffer(user_id, name, score)
                             last_logged[user_id] = now
                             print(f"==================================================")
                             print(f"[ATTENDANCE] 💾 {name} officially logged to DB via SGIE!")
