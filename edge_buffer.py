@@ -79,7 +79,7 @@ def sync_daemon(mqtt_client):
                 msg_info.wait_for_publish()
                 
                 if msg_info.is_published():
-                    print(f"[DAEMON] 📤 Published event {event_id} ({student_id}) to {TOPIC}")
+                    print(f"[DAEMON] Published event {event_id} ({student_id}) to {TOPIC}")
                     # Only delete from buffer if we know the broker received it
                     cursor.execute('DELETE FROM events WHERE id = ?', (event_id,))
                     conn.commit()
@@ -97,12 +97,12 @@ def sync_daemon(mqtt_client):
 # Paho MQTT Callbacks
 def on_connect(client, userdata, flags, rc, properties=None):
     if rc == 0:
-        print(f"[MQTT] ✅ Connected to broker at {BROKER}")
+        print(f"[MQTT] Connected to broker at {BROKER}")
     else:
-        print(f"[MQTT] ❌ Failed to connect, return code {rc}")
+        print(f"[MQTT] Failed to connect, return code {rc}")
 
 def on_disconnect(client, userdata, rc, properties=None):
-    print("[MQTT] 🔌 Disconnected from broker.")
+    print("[MQTT] Disconnected from broker.")
 
 if __name__ == "__main__":
     print("=== Starting Edge Daemon ===")
