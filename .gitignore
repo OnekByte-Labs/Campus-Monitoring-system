@@ -1,26 +1,40 @@
+# Environments
+venv/
+ds_venv/
+env/
+.venv/
+.env
+
+# Database Files
+*.db
+*.sqlite3
+*.db-journal
+attendance_buffer.db
+
+# Python caches
+__pycache__/
+*.pyc
+*.py[cod]
+*$py.class
+
 # Models and DeepStream engine caches
 models/
 *.onnx
 *.engine
 *.pt
 
-# Virtual Environments
-venv/
-ds_venv/
-
-# Database Files
-*.db
-*.db-journal
-
 # Compiled C++ custom parsers
 *.so
 nvdsinfer_custom_impl_Yolo/
 
-# Python caches
-__pycache__/
-*.pyc
-
 # Node.js / Backend Service
 node_modules/
-.env
+package-lock.json
+
+# IDEs
+.vscode/
+.idea/
+
+# DeepStream / GStreamer cache
+*.cache
 known_faces/
