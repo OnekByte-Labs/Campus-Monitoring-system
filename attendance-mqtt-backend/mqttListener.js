@@ -68,9 +68,9 @@ client.on('message', async (topic, message) => {
         {
           student_id: student_id,
           student_name: student_name, 
-          camera_id: camera_id, // Make sure this column exists in your Supabase table!
-          // Convert Unix timestamp (seconds) to an ISO date string
-          timestamp: new Date(timestamp * 1000).toISOString(),
+          camera_id: camera_id, 
+          // Convert to GMT+5:30 (IST) local time
+          timestamp: new Date(timestamp * 1000 + (5.5 * 60 * 60 * 1000)).toISOString().replace('Z', ''),
           similarity_score: similarity_score
         }
       ]);
