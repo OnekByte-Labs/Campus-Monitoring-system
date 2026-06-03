@@ -49,16 +49,17 @@ client.on('message', async (topic, message) => {
   try {
     const eventData = JSON.parse(message.toString());
 
-    // Extract student_name along with the other fields
-    const { student_id, student_name, timestamp, similarity_score } = eventData;
+    // Extract fields including camera_id
+    const { student_id, student_name, timestamp, similarity_score, camera_id } = eventData;
 
-    // Validate payload fields (student_name is optional here to prevent crashes if old payloads arrive)
+    // Validate payload fields
     if (!student_id || !timestamp || similarity_score === undefined) {
       throw new Error('Invalid payload: missing required fields');
     }
 
     const displayName = student_name || "Unknown Student";
-    console.log(`\n📥 Received event from [${topic}]: ${displayName} (${student_id})`);
+    const camStr = camera_id !== undefined ? `[Cam ${camera_id}]` : '';
+    console.log(`\n📥 Received event from [${topic}] ${camStr}: ${displayName} (${student_id})`);
 
     // Insert into Supabase using the REST SDK
     const { error } = await supabase
@@ -66,7 +67,8 @@ client.on('message', async (topic, message) => {
       .insert([
         {
           student_id: student_id,
-          student_name: student_name, // Make sure this column exists in your Supabase table!
+          student_name: student_name, 
+          camera_id: camera_id, // Make sure this column exists in your Supabase table!
           // Convert Unix timestamp (seconds) to an ISO date string
           timestamp: new Date(timestamp * 1000).toISOString(),
           similarity_score: similarity_score

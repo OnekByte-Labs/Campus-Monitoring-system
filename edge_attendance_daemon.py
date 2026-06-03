@@ -62,23 +62,24 @@ def init_db():
             student_id TEXT NOT NULL,
             student_name TEXT NOT NULL,
             timestamp REAL NOT NULL,
-            similarity_score REAL NOT NULL
+            similarity_score REAL NOT NULL,
+            camera_id INTEGER NOT NULL
         )
     ''')
     conn.commit()
     conn.close()
     print("[DB] Initialized local SQLite buffer database with student_name support.")
 
-def save_to_buffer(student_id, student_name, similarity_score):
-    """Instantly saves a detection event and name to the local database."""
+def save_to_buffer(student_id, student_name, similarity_score, camera_id):
+    """Instantly saves a detection event, name, and camera source to the local database."""
     current_timestamp = time.time()
     try:
         conn = sqlite3.connect(DB_FILE)
         cursor = conn.cursor()
         cursor.execute('''
-            INSERT INTO events (student_id, student_name, timestamp, similarity_score)
-            VALUES (?, ?, ?, ?)
-        ''', (student_id, student_name, current_timestamp, similarity_score))
+            INSERT INTO events (student_id, student_name, timestamp, similarity_score, camera_id)
+            VALUES (?, ?, ?, ?, ?)
+        ''', (student_id, student_name, current_timestamp, similarity_score, camera_id))
         conn.commit()
         conn.close()
     except Exception as e:
@@ -90,7 +91,7 @@ def sync_daemon(mqtt_client):
         try:
             conn = sqlite3.connect(DB_FILE)
             cursor = conn.cursor()
-            cursor.execute('SELECT id, student_id, student_name, timestamp, similarity_score FROM events ORDER BY id ASC LIMIT 50')
+            cursor.execute('SELECT id, student_id, student_name, timestamp, similarity_score, camera_id FROM events ORDER BY id ASC LIMIT 50')
             rows = cursor.fetchall()
             
             if not rows:
@@ -99,13 +100,14 @@ def sync_daemon(mqtt_client):
                 continue
                 
             for row in rows:
-                event_id, student_id, student_name, timestamp, similarity_score = row
+                event_id, student_id, student_name, timestamp, similarity_score, camera_id = row
                 
                 payload = {
                     "student_id": student_id,
                     "student_name": student_name,
                     "timestamp": int(timestamp),
-                    "similarity_score": float(similarity_score)
+                    "similarity_score": float(similarity_score),
+                    "camera_id": camera_id
                 }
                 
                 msg_info = mqtt_client.publish(TOPIC, json.dumps(payload), qos=1)
@@ -270,11 +272,11 @@ def osd_sink_pad_buffer_probe(pad, info, u_data):
                     uid = _uid_for_name(cached_name)
                     if uid is not None:
                         if (uid not in last_logged or now - last_logged[uid] > COOLDOWN_SEC):
-                            # Passing the explicit name here
-                            save_to_buffer(uid, cached_name, cached_score)
+                            # Passing the explicit name and source_id here
+                            save_to_buffer(uid, cached_name, cached_score, source_id)
                             last_logged[uid] = now
                             print(f"==================================================")
-                            print(f"[ATTENDANCE] 💾 {cached_name} officially logged to DB via Cache!")
+                            print(f"[ATTENDANCE] 💾 {cached_name} officially logged to DB via Cache on Cam {source_id}!")
                             print(f"==================================================")
 
                     try:
@@ -335,11 +337,11 @@ def osd_sink_pad_buffer_probe(pad, info, u_data):
                         
                         # 2. DATABASE COOLDOWN LOGIC
                         if (user_id not in last_logged or now - last_logged[user_id] > COOLDOWN_SEC):
-                            # Passing the explicit name here
-                            save_to_buffer(user_id, name, score)
+                            # Passing the explicit name and source_id here
+                            save_to_buffer(user_id, name, score, source_id)
                             last_logged[user_id] = now
                             print(f"==================================================")
-                            print(f"[ATTENDANCE] 💾 {name} officially logged to DB via SGIE!")
+                            print(f"[ATTENDANCE] 💾 {name} officially logged to DB via SGIE on Cam {source_id}!")
                             print(f"==================================================")
                         
                         recognised = True
