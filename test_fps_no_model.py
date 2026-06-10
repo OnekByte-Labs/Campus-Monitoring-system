@@ -95,7 +95,7 @@ def create_source_bin(index, uri):
         v4l2src.set_property("device", uri)
         nvvidconv = Gst.ElementFactory.make("nvvideoconvert", f"nvvidconv_{index}")
         capsfilter = Gst.ElementFactory.make("capsfilter", f"caps_{index}")
-        caps = Gst.Caps.from_string("video/x-raw(memory:NVMM), width=640, height=480, format=NV12")
+        caps = Gst.Caps.from_string("video/x-raw(memory:NVMM), width=640, height=480, format=NV12, framerate=30/1")
         capsfilter.set_property("caps", caps)
 
         Gst.Bin.add(nbin, v4l2src)
