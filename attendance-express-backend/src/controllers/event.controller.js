@@ -19,6 +19,16 @@ class EventController {
 
       logger.info(`Received attendance event from Device [${device_id || 'Unknown'}] for Student: ${student_id}`);
 
+      // Intercept and check for Security Alerts before logging
+      const alertService = require('../services/alert.service');
+      alertService.checkEvent({
+        student_id,
+        student_name,
+        similarity_score,
+        timestamp,
+        camera_id
+      });
+
       // Call Service Layer to handle DB logic
       const record = await eventService.logAttendance({
         student_id,

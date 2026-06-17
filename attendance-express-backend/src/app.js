@@ -2,12 +2,19 @@ require('dotenv').config();
 const express = require('express');
 const helmet = require('helmet');
 const pinoHttp = require('pino-http');
+const http = require('http');
 
 // Custom Modules
 const logger = require('./utils/logger');
 const globalLimiter = require('./middlewares/rate-limit');
-const errorHandler = require('./middlewares/error.middleware');
 const eventRoutes = require('./routes/event.routes');
+const studentRoutes = require('./routes/student.routes');
+const analyticsRoutes = require('./routes/analytics.routes');
+const errorHandler = require('./middlewares/error.middleware');
+
+// Services
+const socketService = require('./services/socket.service');
+const cronService = require('./services/cron.service');
 
 // Initialize Express App
 const app = express();
@@ -34,12 +41,10 @@ app.get('/health', (req, res) => {
   res.status(200).json({ status: 'OK', uptime: process.uptime() });
 });
 
-// Mount Event Service Routes
+// Mount Routes
 app.use('/api/v1/events', eventRoutes);
-
-// Mount Student Service Routes
-const studentRoutes = require('./routes/student.routes');
 app.use('/api/v1/students', studentRoutes);
+app.use('/api/v1/analytics', analyticsRoutes);
 
 // --- GLOBAL ERROR HANDLING --- //
 // 404 Handler
@@ -50,10 +55,18 @@ app.use((req, res, next) => {
 // Centralized Error Middleware
 app.use(errorHandler);
 
-// Start Server
+// --- SERVER INITIALIZATION --- //
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
+const server = http.createServer(app);
+
+// Initialize Socket.IO Hub
+socketService.init(server);
+
+// Initialize Cron Jobs
+cronService.init();
+
+server.listen(PORT, () => {
   logger.info(`🚀 API Gateway running on port ${PORT}`);
 });
 
-module.exports = app;
+module.exports = server;
