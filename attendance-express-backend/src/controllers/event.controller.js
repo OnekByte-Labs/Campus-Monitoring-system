@@ -38,6 +38,15 @@ class EventController {
         camera_id,
       });
 
+      // Emit live event to all connected dashboard clients
+      try {
+        const socketService = require('../services/socket.service');
+        const io = socketService.getIO();
+        io.emit('new_attendance', record);
+      } catch (err) {
+        logger.error('Could not emit new_attendance socket event.');
+      }
+
       return res.status(201).json({
         success: true,
         message: 'Attendance logged successfully',

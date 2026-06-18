@@ -1,0 +1,210 @@
+.surveillance-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--stack-lg);
+}
+
+.surveillance-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: var(--stack-lg);
+}
+
+.surveillance-tabs {
+  display: flex;
+  gap: var(--stack-sm);
+  align-items: center;
+}
+
+.floor-tab {
+  padding: 8px 16px;
+  border-radius: var(--radius-lg);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--on-surface-variant);
+  transition: all var(--transition-smooth);
+}
+
+.floor-tab.active {
+  color: var(--secondary);
+}
+
+.floor-tab:not(.active):hover {
+  color: var(--primary);
+}
+
+.layout-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--stack-sm);
+  padding: 8px 24px;
+  border-radius: var(--radius-full);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--primary);
+  background: var(--surface-container);
+  margin-left: var(--stack-md);
+}
+
+.camera-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: var(--stack-lg);
+}
+
+.camera-card {
+  background: var(--surface-container);
+  border-radius: var(--radius-3xl);
+  padding: var(--stack-lg);
+  transition: transform var(--transition-smooth);
+}
+
+.camera-card:hover {
+  transform: scale(1.02);
+}
+
+.camera-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--stack-md);
+}
+
+.camera-id {
+  display: flex;
+  align-items: center;
+  gap: var(--stack-sm);
+}
+
+.camera-status {
+  display: flex;
+  align-items: center;
+  gap: var(--stack-sm);
+}
+
+.status-badge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.status-live {
+  background: var(--error-container);
+  color: var(--error);
+}
+
+.status-offline {
+  background: var(--surface-variant);
+  color: var(--outline-variant);
+}
+
+.live-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--error);
+}
+
+.camera-viewport {
+  position: relative;
+  aspect-ratio: 16/9;
+  border-radius: var(--radius-xl);
+  background: var(--surface-container-lowest);
+  border: 1px solid rgba(72, 69, 84, 0.2);
+  margin-bottom: var(--stack-md);
+  overflow: hidden;
+}
+
+.camera-feed {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.8;
+  transition: opacity var(--transition-smooth);
+}
+
+.camera-card:hover .camera-feed {
+  opacity: 1;
+}
+
+.camera-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.6), transparent);
+  pointer-events: none;
+}
+
+.camera-rec-badge {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  padding: 4px 8px;
+  background: rgba(0,0,0,0.4);
+  backdrop-filter: blur(8px);
+  border-radius: 4px;
+  font-size: 10px;
+  font-family: monospace;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+.camera-offline {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: var(--stack-sm);
+}
+
+.camera-controls {
+  display: flex;
+  gap: var(--stack-sm);
+}
+
+.cam-btn {
+  flex: 1;
+  padding: 8px;
+  border-radius: var(--radius-xl);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--on-surface-variant);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  transition: all var(--transition-fast);
+}
+
+.cam-btn.icon-only {
+  flex: 0 0 auto;
+  padding: 8px 16px;
+}
+
+.cam-btn:not(:disabled):hover {
+  color: var(--primary);
+}
+
+.cam-btn:not(:disabled):active {
+  transform: scale(0.95);
+}
+
+.cam-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .surveillance-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--stack-md);
+  }
+  .camera-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -3,6 +3,7 @@ const express = require('express');
 const helmet = require('helmet');
 const pinoHttp = require('pino-http');
 const http = require('http');
+const path = require('path');
 
 // Custom Modules
 const logger = require('./utils/logger');
@@ -24,14 +25,25 @@ const app = express();
 // 1. Security Headers
 app.use(helmet());
 
-// 2. Body Parser
+// 2. CORS for Dashboard
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, x-api-key');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  if (req.method === 'OPTIONS') return res.sendStatus(200);
+  next();
+});
+
+// 3. Body Parser
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// 3. Structured Logging (HTTP Request Logging)
+// 4. Removed static file serving (frontend is now separate)
+
+// 5. Structured Logging (HTTP Request Logging)
 app.use(pinoHttp({ logger }));
 
-// 4. Rate Limiting (Redis-backed)
+// 6. Rate Limiting (Redis-backed)
 app.use(globalLimiter);
 
 // --- LAYER 4: MODULAR SERVICE ROUTES --- //

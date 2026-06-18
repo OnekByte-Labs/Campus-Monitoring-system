@@ -1,0 +1,227 @@
+.registration-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--margin-desktop);
+}
+
+.registration-container {
+  width: 100%;
+  max-width: 640px;
+  background: var(--surface);
+  border-radius: var(--radius-3xl);
+  overflow: hidden;
+}
+
+.registration-header {
+  padding: var(--stack-lg);
+  padding-bottom: var(--stack-md);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.registration-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-xl);
+  background: var(--surface-container-high);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.registration-body {
+  padding: var(--stack-lg);
+  padding-top: var(--stack-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--stack-lg);
+}
+
+.scan-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--stack-md);
+}
+
+.scan-label {
+  display: flex;
+  align-items: center;
+  gap: var(--stack-sm);
+}
+
+.scan-viewport {
+  position: relative;
+  height: 256px;
+  width: 100%;
+  border-radius: var(--radius-2xl);
+  background: var(--surface-container-lowest);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.scan-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.5;
+  transition: opacity var(--transition-smooth);
+}
+
+.scan-viewport:hover .scan-bg {
+  opacity: 0.6;
+}
+
+.scan-line {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 50%;
+  background: linear-gradient(to bottom, transparent, rgba(112, 255, 231, 0.2), transparent);
+  animation: scan-bounce 3s infinite;
+  pointer-events: none;
+}
+
+@keyframes scan-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(100%); }
+}
+
+.scan-overlay-content {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--stack-md);
+}
+
+.scan-btn {
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-full);
+  border: 2px dashed rgba(112, 255, 231, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-smooth);
+}
+
+.scan-btn:hover:not(:disabled) {
+  background: rgba(112, 255, 231, 0.1);
+}
+
+.scan-btn.scanning {
+  border-style: solid;
+}
+
+.scan-success-indicator {
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(112, 255, 231, 0.1);
+  border: 2px solid var(--secondary);
+}
+
+.scan-status-text {
+  font-family: monospace;
+  font-size: 14px;
+  color: var(--secondary);
+  background: rgba(20, 18, 27, 0.6);
+  padding: 4px 16px;
+  border-radius: var(--radius-full);
+  backdrop-filter: blur(4px);
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--gutter);
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--stack-sm);
+}
+
+.form-group:nth-child(1),
+.form-group:nth-child(5) {
+  grid-column: span 1;
+}
+
+@media (max-width: 640px) {
+  .form-group {
+    grid-column: span 2 !important;
+  }
+}
+
+.form-group label {
+  margin-left: 8px;
+}
+
+.form-input {
+  width: 100%;
+  padding: 16px;
+  border-radius: var(--radius-xl);
+  background: var(--surface-container-lowest);
+  border: none;
+  color: var(--on-surface);
+  font-size: 16px;
+  transition: box-shadow var(--transition-smooth);
+  outline: none;
+}
+
+.form-input:focus {
+  box-shadow: inset 4px 4px 10px rgba(3,1,10,0.85), inset -4px -4px 10px rgba(150,124,255,0.15);
+}
+
+.form-input::placeholder {
+  color: var(--outline-variant);
+}
+
+.form-error {
+  padding: var(--stack-md);
+  border-radius: var(--radius-lg);
+  background: rgba(147, 0, 10, 0.1);
+  border: 1px solid var(--error);
+  text-align: center;
+}
+
+.submit-btn {
+  margin-top: var(--stack-md);
+  background: var(--surface-container-high);
+  padding: 24px;
+  border-radius: var(--radius-2xl);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--stack-md);
+  color: var(--secondary);
+  transition: all var(--transition-smooth);
+}
+
+.submit-btn:hover:not(:disabled) {
+  color: var(--secondary-fixed);
+  transform: scale(1.02);
+}
+
+.submit-btn:active:not(:disabled) {
+  transform: scale(0.98);
+  box-shadow: var(--shadow-inset);
+}
+
+.submit-btn.success {
+  background: rgba(0, 229, 203, 0.1);
+  color: var(--secondary);
+  box-shadow: var(--shadow-inset);
+}
