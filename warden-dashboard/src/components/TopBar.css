@@ -1,0 +1,62 @@
+.topbar {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: var(--sidebar-width);
+  height: var(--topbar-height);
+  background: var(--surface);
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--margin-desktop);
+}
+
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: var(--stack-md);
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: var(--stack-lg);
+}
+
+.sync-badge {
+  display: flex;
+  align-items: center;
+  gap: var(--stack-sm);
+  padding: var(--unit) var(--stack-md);
+  border-radius: var(--radius-full);
+}
+
+.sync-badge.connected .sync-dot { background: var(--secondary-container); }
+.sync-badge.connected { color: var(--secondary); }
+.sync-badge.disconnected .sync-dot { background: var(--error); }
+.sync-badge.disconnected { color: var(--error); }
+
+.sync-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.topbar-btn {
+  padding: var(--stack-sm);
+  border-radius: var(--radius-full);
+  color: var(--on-surface-variant);
+  transition: all var(--transition-smooth);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.topbar-btn:hover {
+  color: var(--primary);
+}
+
+.topbar-btn:active {
+  transform: scale(0.95);
+}

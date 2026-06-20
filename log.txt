@@ -1,6 +1,107 @@
+blackbox@blackbox-desktop:~/FACE_Detection_Jetson$ python3 edge_attendance_daemon.py rtsp://admin:sharad@192.168.1.10.8554/live
+[INFO] Loaded 74 enrolled face(s) from database
+[INFO] Watchlist matrix built: (74, 512)
+============================================================
+  INITIALIZING EDGE NETWORK DAEMON...
+============================================================
+[DB] Initialized local SQLite buffer database with student_name support.
+[MQTT] Connecting to broker.hivemq.com:1883...
+
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+  INITIALIZING DEEPSTREAM PIPELINE...
+============================================================
+[MQTT] ✅ Connected to broker at broker.hivemq.com:1883
+Unknown key 'min-bbox-width' for group [property]
+Unknown key 'min-bbox-height' for group [property]
+
+[VISION] Starting DeepStream Pipeline...
+[VISION] Press Ctrl+C to stop gracefully
+
+
 Using winsys: x11 
-0:00:00.380748749  7146     0x2cd0c830 WARN                 nvinfer gstnvinfer.cpp:794:gst_nvinfer_start:<secondary-nvinference-engine> error: Configuration file parsing failed
-0:00:00.380815885  7146     0x2cd0c830 WARN                 nvinfer gstnvinfer.cpp:794:gst_nvinfer_start:<secondary-nvinference-engine> error: Config file path: configs/sgie_config.txt
-[ERROR] gst-library-error-quark: Configuration file parsing failed (5): /dvs/git/dirty/git-master_linux/deepstream/sdk/src/gst-plugins/gst-nvinfer/gstnvinfer.cpp(794): gst_nvinfer_start (): /GstPipeline:pipeline0/GstNvInfer:secondary-nvinference-engine:
-Config file path: configs/sgie_config.txt
-Exiting app...
+0:00:06.612035916 13598     0x1fab5030 INFO                 nvinfer gstnvinfer.cpp:638:gst_nvinfer_logger:<secondary-nvinference-engine> NvDsInferContext[UID 2]: Info from NvDsInferContextImpl::deserializeEngineAndBackend() <nvdsinfer_context_impl.cpp:1900> [UID = 2]: deserialized trt engine from :/home/blackbox/FACE_Detection_Jetson/models/w600k_mbf_dynamic.onnx_b8_gpu0_fp16.engine
+INFO: [FullDims Engine Info]: layers num: 2
+0   INPUT  kFLOAT input.1         3x112x112       min: 1x3x112x112     opt: 8x3x112x112     Max: 8x3x112x112     
+1   OUTPUT kFLOAT 516             512             min: 0               opt: 0               Max: 0               
+
+0:00:06.614108609 13598     0x1fab5030 INFO                 nvinfer gstnvinfer.cpp:638:gst_nvinfer_logger:<secondary-nvinference-engine> NvDsInferContext[UID 2]: Info from NvDsInferContextImpl::generateBackendContext() <nvdsinfer_context_impl.cpp:2004> [UID = 2]: Use deserialized engine model: /home/blackbox/FACE_Detection_Jetson/models/w600k_mbf_dynamic.onnx_b8_gpu0_fp16.engine
+0:00:06.646810552 13598     0x1fab5030 INFO                 nvinfer gstnvinfer_impl.cpp:313:notifyLoadModelStatus:<secondary-nvinference-engine> [UID 2]: Load new model:configs/sgie_config.txt sucessfully
+gstnvtracker: Loading low-level lib at /opt/nvidia/deepstream/deepstream/lib/libnvds_nvmultiobjecttracker.so
+gstnvtracker: Batch processing is ON
+gstnvtracker: Past frame output is OFF
+!! [WARNING][NvTrackerParamsBase] Unknown param found: maxTargetsPerStream
+!! [WARNING][NvTrackerParamsBase] Unknown param found: trackerWidth
+!! [WARNING][NvTrackerParamsBase] Unknown param found: trackerHeight
+!! [WARNING][NvTrackerParamsBase] Unknown param found: gpuId
+[NvMultiObjectTracker] Initialized
+0:00:07.409989920 13598     0x1fab5030 INFO                 nvinfer gstnvinfer.cpp:638:gst_nvinfer_logger:<primary-inference> NvDsInferContext[UID 1]: Info from NvDsInferContextImpl::deserializeEngineAndBackend() <nvdsinfer_context_impl.cpp:1900> [UID = 1]: deserialized trt engine from :/home/blackbox/FACE_Detection_Jetson/models/yolov8n-face.onnx_b2_gpu0_fp16.engine
+INFO: [FullDims Engine Info]: layers num: 2
+0   INPUT  kFLOAT images          3x640x640       min: 1x3x640x640     opt: 2x3x640x640     Max: 2x3x640x640     
+1   OUTPUT kFLOAT output0         5x8400          min: 0               opt: 0               Max: 0               
+
+0:00:07.411050668 13598     0x1fab5030 INFO                 nvinfer gstnvinfer.cpp:638:gst_nvinfer_logger:<primary-inference> NvDsInferContext[UID 1]: Info from NvDsInferContextImpl::generateBackendContext() <nvdsinfer_context_impl.cpp:2004> [UID = 1]: Use deserialized engine model: /home/blackbox/FACE_Detection_Jetson/models/yolov8n-face.onnx_b2_gpu0_fp16.engine
+0:00:07.540860818 13598     0x1fab5030 INFO                 nvinfer gstnvinfer_impl.cpp:313:notifyLoadModelStatus:<primary-inference> [UID 1]: Load new model:configs/pgie_config.txt sucessfully
+[ERROR] gst-resource-error-quark: Could not open resource for reading and writing. (7): gstrtspsrc.c(7469): gst_rtspsrc_retrieve_sdp (): /GstPipeline:pipeline0/GstBin:source-bin-0/GstURIDecodeBin:uri-decode-bin/GstRTSPSrc:source:
+Failed to connect. (Generic error)
+[SYSTEM] Exiting app and cleaning up...
+[MQTT] 🔌 Disconnected from broker.
+[NvMultiObjectTracker] De-initialized
