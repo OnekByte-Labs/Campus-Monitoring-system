@@ -56,6 +56,21 @@ class EventController {
       next(error); // Pass to global error handler
     }
   }
+
+  /**
+   * Handle GET request for today's attendance
+   */
+  async getTodayAttendance(req, res, next) {
+    try {
+      const records = await eventService.getTodayAttendance();
+      return res.status(200).json({
+        success: true,
+        data: records,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 module.exports = new EventController();

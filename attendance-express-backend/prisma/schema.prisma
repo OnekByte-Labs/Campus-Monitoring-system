@@ -17,6 +17,7 @@ model AttendanceLog {
   student_name     String?  @db.VarChar(100)
   camera_id        Int?
   similarity_score Float
+  direction        String   @default("IN") @db.VarChar(10)
   timestamp        DateTime // Stores exact local time if properly configured
   created_at       DateTime @default(now())
 
