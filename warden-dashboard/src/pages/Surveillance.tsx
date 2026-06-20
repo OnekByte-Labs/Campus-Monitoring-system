@@ -1,93 +1,219 @@
-import { useState } from 'react';
-import { Video, Grid, Maximize, Circle, Camera } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Video, Maximize, Circle, Camera, Radio, ShieldAlert } from 'lucide-react';
+import { io, Socket } from 'socket.io-client';
+import { TopBar } from '../components/TopBar';
 
-const cameras = [
-  { id: 'CAM_01_ENTRANCE', name: 'Entrance', fps: 60, status: 'LIVE', res: '1080p', error: false, image: 'https://lh3.googleusercontent.com/aida/AP1WRLv7Vi7UJgx2dCiVtfWYnrNRx9DDwQHYP65Ww9YBuEhX2T0XEegD-DeHys7x_hEDzPLpCOztBFfFEzdOlIlhQcjZ6HiAat7EmBEQ28bL5QyW7ZDsys7phC6WCmzQhCGJAu5FwwLRDSAXTOD6Xmew1PRVr3Z3LTl_tqgclOOcoHxMFjbfhKustETMdR7kVcS7O61-0TLR38XXmzpNndKnYkvZakd_8N2aUVYNUBumtAHcBioMUrlNMBwGnlc' },
-  { id: 'CAM_02_LOBBY', name: 'Lobby', fps: 45, status: 'LIVE', res: '1080p', error: false, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBHqTQ0setz4xK_eQV4ZicNu4R2Af9ozzRHyuN8Eh1DJiHQJP-gLqvQnAnv5-iG_xu_2YGu-mlukSmnHRoa6Rv-ZopkzIEaFMj6CUSR_KkMsOsPipHKIHynswb4KMH2PT2hLdN0WvK22wokEqcWAnRf6EpueJx12u8B5UPcXUDuEphYAIO8nYhLFzyJx5LHwScPgnJ4ssomXChxCGSAuFGA5q9ZkxIF_KZNWJaFyrOrz2LNCOcZstxov0-rOd_GdVT7KnMvYNvdf90' },
-  { id: 'CAM_03_PARKING', name: 'Parking', fps: 30, status: 'LIVE', res: '1080p', error: false, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuC6r0NpIp-slCOPxrrd_dDUHXxDaMeCb7OsBnwLK9GEBNG_rqb2J_-1OfOBduF_DbzrRThMVb0gbxVU83I9YD9dptnLKqB508V5oKI5ulEIgVfWLZA66pP5b_cgiiNwgx2QbJnwGP2pt0yIee7KwpjdQAWC-d3phLGrTECmoi5rFS_2LU2R3Yaw09CyXSFIPfSQebWCav5ahe9xy9P6ZCn_jVBu5bPIxKJrqrnb5WunsTg8DUFGtqNy41pYGMuql5EOzluNPE5KypM' },
-  { id: 'CAM_04_CORRIDOR_A', name: 'Corridor A', fps: 60, status: 'LIVE', res: '1080p', error: false, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDE3kI0IZMD9-ay3j4I1IEeZGq3QQnSulTTJ78fhrzsYx3qINdvotgPXqGnrBWXYlMemojujEKYltxIE7AtkwlI8-HdirQzlhfMVBgWbdvgiX_NyzR4mq8QeWMj2OHBO8lJJ_4dK84yHaJiJqA8XLEix3xczrInlIdqq_moNNuq69mq2sWuf7DAkZMkcRm9ANE9J35jAPLEsMvHJgXjBXY_wGij7jflzfLjIK2qs0IzZXlE6_Y5_nJCqJBpDGLaU09QqCBhIzc0zCg' },
-  { id: 'CAM_05_ROOFTOP', name: 'Rooftop', fps: 24, status: 'LIVE', res: '1080p', error: false, image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDxbttdCcQZclp8B1CKZ_tzPHCO4DaiRPLXz4hnCStavd469UCWXWehmy8DfQ9pmWIs32RREXUTjeCfcT8sRSY0ruR9M3R2rRZRC2E29TVDHIaV3vCDDTj8cG1pnwVNDLrFKEKwQF1TXNYwizo1P7wO6izmmLcqWkQN3Z994coa24KHE7l9opuGtVNVqYOurLWzefrbBdHNQGHpWxfV6pkVihQFyjg0e-ZjqZ3xfmTjv_xMkePUkRKMoLFpz1Mjr1ZxP1LxuTnLvXw' },
-  { id: 'CAM_06_BACK_EXIT', name: 'Back Exit', fps: 0, status: 'OFFLINE', res: 'N/A', error: true, image: '' },
-];
+interface TelemetryEvent {
+  id: string;
+  student_name: string;
+  student_id: string;
+  direction: string;
+  camera_id: number;
+  time: string;
+}
 
 export default function Surveillance() {
-  const [activeTab, setActiveTab] = useState('Ground Floor');
+  const [events, setEvents] = useState<TelemetryEvent[]>([]);
+  const [socketConnected, setSocketConnected] = useState(false);
+
+  useEffect(() => {
+    const socket: Socket = io('http://localhost:3000');
+
+    socket.on('connect', () => {
+      setSocketConnected(true);
+    });
+
+    socket.on('disconnect', () => {
+      setSocketConnected(false);
+    });
+
+    socket.on('new_attendance', (record) => {
+      const newEvent: TelemetryEvent = {
+        id: Math.random().toString(36).substr(2, 9),
+        student_name: record.student_name || 'Unknown',
+        student_id: record.student_id,
+        direction: record.direction,
+        camera_id: record.camera_id,
+        time: new Date(record.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+      };
+      
+      setEvents((prev) => [newEvent, ...prev].slice(0, 50)); // Keep last 50 events
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
 
   return (
-    <>
-      <div className="flex flex-col gap-stack-lg mb-stack-lg">
-        {/* Floor selector */}
-        <div className="flex flex-col md:flex-row md:justify-between md:items-end mb-stack-lg gap-stack-md">
-          <div>
-            <h2 className="font-headline-md text-headline-md text-on-surface">Floor Surveillance Monitor</h2>
-            <p className="font-body-sm text-body-sm text-on-surface-variant">Active Nodes: 24 | Connectivity: High-Bandwidth</p>
-          </div>
-          <div className="flex gap-stack-sm items-center">
-            {['Ground Floor', '1st Floor', '2nd Floor'].map((floor) => (
-              <button
-                key={floor}
-                className={`px-4 py-2 rounded-lg text-[12px] font-semibold transition-all duration-300 ${activeTab === floor ? 'neu-inset text-secondary' : 'neu-convex text-on-surface-variant hover:text-primary'}`}
-                onClick={() => setActiveTab(floor)}
-              >
-                {floor}
-              </button>
-            ))}
-            <button className="flex items-center gap-stack-sm px-6 py-2 rounded-full text-[12px] font-semibold text-primary bg-surface-container ml-stack-md neu-convex hover:scale-105 active:scale-95 transition-transform">
-              <Grid size={16} /> Layout
-            </button>
-          </div>
-        </div>
+    <div className="flex flex-col min-h-screen pb-32">
+      <TopBar title="Live Surveillance Array" />
 
-        {/* Camera Grid */}
-        <div className="grid grid-cols-[repeat(auto-fill,minmax(400px,1fr))] gap-stack-lg max-md:grid-cols-1">
-          {cameras.map((cam) => (
-            <div key={cam.id} className="bg-surface-container rounded-3xl p-stack-lg transition-transform duration-300 hover:scale-[1.02] neu-convex group">
-              <div className="flex justify-between items-center mb-stack-md">
-                <div className="flex items-center gap-stack-sm">
-                  <Video size={16} className={cam.error ? 'text-error' : 'glow-teal text-secondary'} />
-                  <span className="font-label-md text-label-md">{cam.id}</span>
-                </div>
-                <div className="flex items-center gap-stack-sm">
-                  <span className={`flex items-center gap-1 px-2 py-0.5 rounded-[4px] text-[10px] font-bold ${cam.error ? 'bg-surface-variant text-outline-variant' : 'bg-error-container text-error'}`}>
-                    {!cam.error && <div className="w-1 h-1 rounded-full bg-error animate-pulse" />}
-                    {cam.status}
-                  </span>
-                  <span className="font-label-md text-label-md text-outline" style={{ fontSize: '10px' }}>
-                    {cam.res} | {cam.fps} FPS
-                  </span>
-                </div>
-              </div>
+      <main className="p-margin-desktop min-h-screen max-w-[1440px] mx-auto w-full">
+        <div className="flex flex-col gap-gutter">
+          
+          {/* Header Area */}
+          <div className="flex flex-col md:flex-row md:justify-between md:items-end gap-stack-md bg-surface-container p-stack-lg rounded-3xl neu-convex">
+            <div>
+              <h2 className="font-headline-md text-3xl font-bold text-on-surface">Dual-Gate Node Architecture</h2>
+              <p className="font-body-sm text-on-surface-variant mt-1 tracking-wide">Secure Hardware Pipeline Active • Latency &lt; 15ms</p>
+            </div>
+            <div className="flex items-center gap-3 bg-surface-container-low neu-inset px-4 py-2 rounded-xl">
+              <Radio size={20} className={socketConnected ? 'text-secondary animate-pulse' : 'text-error'} />
+              <span className="font-label-md text-[12px] font-bold tracking-widest uppercase text-on-surface">
+                {socketConnected ? 'SOCKET LINK STABLE' : 'LINK SEVERED'}
+              </span>
+            </div>
+          </div>
 
-              <div className={`relative aspect-video rounded-xl bg-surface-container-lowest border mb-stack-md overflow-hidden ${cam.error ? 'border-error/20' : 'border-outline-variant/20 neu-inset'}`}>
-                {cam.error ? (
-                  <div className="flex flex-col items-center justify-center h-full gap-stack-sm">
-                    <Video size={32} className="text-outline" />
-                    <p className="font-label-md text-label-md text-outline">RECONNECTING...</p>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
+            
+            {/* Dual Camera Grid */}
+            <div className="col-span-1 lg:col-span-8 flex flex-col gap-gutter">
+              
+              {/* FEED 01: IN */}
+              <div className="bg-surface-container rounded-3xl p-stack-lg neu-convex group">
+                <div className="flex justify-between items-center mb-stack-md">
+                  <div className="flex flex-col">
+                    <span className="font-headline-sm font-bold text-on-surface flex items-center gap-2">
+                      <Video size={20} className="text-secondary" />
+                      Feed 01: Entry Gate (IN)
+                    </span>
+                    <span className="font-mono text-[10px] text-on-surface-variant tracking-widest mt-1">NODE: CAM_00 | RESOLUTION: 1080p | 60 FPS</span>
                   </div>
-                ) : (
-                  <>
-                    <img src={cam.image} alt={cam.name} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-300" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent pointer-events-none"></div>
-                    <div className="absolute top-4 left-4 px-2 py-1 bg-black/40 backdrop-blur-md rounded-[4px] text-[10px] font-mono border border-white/10 text-white">REC ●</div>
-                  </>
-                )}
+                  <span className="bg-secondary/20 border border-secondary/30 text-secondary px-3 py-1 rounded-md text-[10px] font-bold tracking-widest flex items-center gap-2 drop-shadow-[0_0_8px_rgba(0,229,203,0.5)]">
+                    <div className="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse" />
+                    LIVE
+                  </span>
+                </div>
+                
+                <div className="relative aspect-video rounded-2xl bg-black border border-secondary/20 overflow-hidden shadow-[0_0_30px_rgba(0,229,203,0.1)]">
+                  <img 
+                    src="http://192.168.1.7:5001/video_feed_0" 
+                    alt="Entry Gate" 
+                    className="w-full h-full object-cover opacity-80" 
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30 pointer-events-none"></div>
+                  
+                  {/* HUD Elements */}
+                  <div className="absolute top-4 left-4 px-2 py-1 bg-black/40 backdrop-blur-md rounded border border-secondary/30 text-[10px] font-mono text-secondary">
+                    REC ●
+                  </div>
+                  <div className="absolute bottom-4 left-4 font-mono text-[10px] text-secondary/70">
+                    TARGET ACQUISITION LOGIC: ACTIVE
+                  </div>
+                </div>
+
+                <div className="flex gap-stack-sm mt-stack-md">
+                  <button className="flex-1 p-3 rounded-xl text-[11px] font-bold text-on-surface-variant flex items-center justify-center gap-2 hover:text-secondary bg-surface-container-lowest neu-inset transition-colors">
+                    <Maximize size={16} /> EXPAND
+                  </button>
+                  <button className="flex-1 p-3 rounded-xl text-[11px] font-bold text-on-surface-variant flex items-center justify-center gap-2 hover:text-secondary bg-surface-container-lowest neu-inset transition-colors">
+                    <Circle size={16} /> MANUAL OVERRIDE
+                  </button>
+                  <button className="flex-none px-6 py-3 rounded-xl text-[11px] font-bold text-on-surface flex items-center justify-center gap-2 hover:text-white bg-secondary/20 hover:bg-secondary/40 border border-secondary/30 transition-colors shadow-[0_0_15px_rgba(0,229,203,0.2)]">
+                    <Camera size={16} /> CAPTURE
+                  </button>
+                </div>
               </div>
 
-              <div className="flex gap-stack-sm">
-                <button className="flex-1 p-2 rounded-xl text-[11px] font-bold text-on-surface-variant flex items-center justify-center gap-1 transition-all duration-200 hover:text-primary active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed neu-convex" disabled={cam.error}>
-                  <Maximize size={14} /> EXPAND
-                </button>
-                <button className="flex-1 p-2 rounded-xl text-[11px] font-bold text-on-surface-variant flex items-center justify-center gap-1 transition-all duration-200 hover:text-primary active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed neu-convex" disabled={cam.error}>
-                  <Circle size={14} /> RECORD
-                </button>
-                <button className="flex-none px-4 py-2 rounded-xl text-[11px] font-bold text-on-surface-variant flex items-center justify-center gap-1 transition-all duration-200 hover:text-primary active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed neu-convex" disabled={cam.error}>
-                  <Camera size={16} />
-                </button>
+              {/* FEED 02: OUT */}
+              <div className="bg-surface-container rounded-3xl p-stack-lg neu-convex group">
+                <div className="flex justify-between items-center mb-stack-md">
+                  <div className="flex flex-col">
+                    <span className="font-headline-sm font-bold text-on-surface flex items-center gap-2">
+                      <Video size={20} className="text-error" />
+                      Feed 02: Exit Gate (OUT)
+                    </span>
+                    <span className="font-mono text-[10px] text-on-surface-variant tracking-widest mt-1">NODE: CAM_01 | RESOLUTION: 1080p | 45 FPS</span>
+                  </div>
+                  <span className="bg-error/20 border border-error/30 text-error px-3 py-1 rounded-md text-[10px] font-bold tracking-widest flex items-center gap-2 drop-shadow-[0_0_8px_rgba(255,50,50,0.5)]">
+                    <div className="w-1.5 h-1.5 rounded-full bg-error animate-pulse" />
+                    LIVE
+                  </span>
+                </div>
+                
+                <div className="relative aspect-video rounded-2xl bg-black border border-error/20 overflow-hidden shadow-[0_0_30px_rgba(255,50,50,0.1)]">
+                  <img 
+                    src="http://192.168.1.7:5001/video_feed_1" 
+                    alt="Exit Gate" 
+                    className="w-full h-full object-cover opacity-80" 
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30 pointer-events-none"></div>
+                  
+                  {/* HUD Elements */}
+                  <div className="absolute top-4 left-4 px-2 py-1 bg-black/40 backdrop-blur-md rounded border border-error/30 text-[10px] font-mono text-error">
+                    REC ●
+                  </div>
+                  <div className="absolute bottom-4 left-4 font-mono text-[10px] text-error/70">
+                    TARGET ACQUISITION LOGIC: ACTIVE
+                  </div>
+                </div>
+
+                <div className="flex gap-stack-sm mt-stack-md">
+                  <button className="flex-1 p-3 rounded-xl text-[11px] font-bold text-on-surface-variant flex items-center justify-center gap-2 hover:text-error bg-surface-container-lowest neu-inset transition-colors">
+                    <Maximize size={16} /> EXPAND
+                  </button>
+                  <button className="flex-1 p-3 rounded-xl text-[11px] font-bold text-on-surface-variant flex items-center justify-center gap-2 hover:text-error bg-surface-container-lowest neu-inset transition-colors">
+                    <Circle size={16} /> MANUAL OVERRIDE
+                  </button>
+                  <button className="flex-none px-6 py-3 rounded-xl text-[11px] font-bold text-on-surface flex items-center justify-center gap-2 hover:text-white bg-error/20 hover:bg-error/40 border border-error/30 transition-colors shadow-[0_0_15px_rgba(255,50,50,0.2)]">
+                    <Camera size={16} /> CAPTURE
+                  </button>
+                </div>
+              </div>
+
+            </div>
+
+            {/* Sidebar: Telemetry Feed */}
+            <div className="col-span-1 lg:col-span-4">
+              <div className="bg-surface-container rounded-3xl p-stack-lg neu-convex h-full flex flex-col">
+                <div className="flex items-center justify-between mb-stack-md">
+                  <h3 className="font-headline-md text-2xl font-bold text-on-surface">Neural Telemetry</h3>
+                  <ShieldAlert className="text-primary" size={24} />
+                </div>
+                
+                <p className="font-body-sm text-on-surface-variant mb-stack-lg pb-4 border-b border-outline-variant/10">
+                  Real-time biometric recognition events strictly streamed from hardware edge nodes.
+                </p>
+
+                <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-3 pr-2">
+                  {events.length === 0 ? (
+                    <div className="text-center py-12 text-on-surface-variant/50 font-mono text-[12px]">
+                      Awaiting neural handshake...
+                    </div>
+                  ) : (
+                    events.map((evt) => (
+                      <div 
+                        key={evt.id} 
+                        className={`p-4 rounded-2xl flex flex-col gap-2 border animate-in slide-in-from-right-4 fade-in duration-300 ${
+                          evt.direction === 'IN' 
+                            ? 'bg-secondary/10 border-secondary/20' 
+                            : 'bg-error/10 border-error/20'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold text-[14px] text-on-surface">{evt.student_name}</span>
+                          <span className={`text-[10px] font-bold tracking-widest px-2 py-1 rounded ${
+                            evt.direction === 'IN' ? 'bg-secondary/20 text-secondary' : 'bg-error/20 text-error'
+                          }`}>
+                            {evt.direction === 'IN' ? 'ENTRY LOGGED' : 'EXIT LOGGED'}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between font-mono text-[10px] text-on-surface-variant opacity-80">
+                          <span>ID: {evt.student_id}</span>
+                          <span>{evt.time}</span>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
               </div>
             </div>
-          ))}
+
+          </div>
         </div>
-      </div>
-    </>
+      </main>
+    </div>
   );
 }

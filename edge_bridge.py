@@ -8,7 +8,9 @@ import logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 DB_PATH = '/dev/shm/attendance.db'
-API_URL = 'http://localhost:3000/api/v1/events/attendance'
+import os
+BACKEND_IP = os.getenv('BACKEND_IP', '192.168.1.8')
+API_URL = f'http://{BACKEND_IP}:3000/api/v1/events/attendance'
 API_KEY = 'sk_edge_attendance_9f8d7a6b5c4d3e2f1'
 
 HEADERS = {
@@ -23,18 +25,18 @@ def sync_data():
         cursor = conn.cursor()
 
         # Fetch unsent records
-        cursor.execute("SELECT id, student_id, student_name, timestamp, similarity_score FROM local_buffer")
+        cursor.execute("SELECT id, student_id, student_name, timestamp, similarity_score, camera_id FROM local_buffer")
         records = cursor.fetchall()
 
         if not records:
             conn.close()
             return
 
-        logging.info(f"Found {len(records)} unsent records. Attempting sync...")
+        logging.info(f"Found {len(records)} unsent records. Attempting sync to {API_URL}...")
 
         # Process each record
         for record in records:
-            rec_id, student_id, student_name, timestamp, similarity_score = record
+            rec_id, student_id, student_name, timestamp, similarity_score, camera_id = record
             
             payload = {
                 "student_id": student_id,
@@ -42,7 +44,7 @@ def sync_data():
                 "timestamp": timestamp,
                 "similarity_score": similarity_score,
                 "device_id": "JETSON_NANO_01",
-                "camera_id": "CAM_01_ENTRANCE"
+                "camera_id": int(camera_id) if camera_id is not None else None
             }
 
             try:
@@ -53,11 +55,15 @@ def sync_data():
                     logging.info(f"Record {rec_id} synced successfully. Deleting from local buffer.")
                     cursor.execute("DELETE FROM local_buffer WHERE id = ?", (rec_id,))
                     conn.commit()
+                elif 400 <= response.status_code < 500:
+                    logging.warning(f"Server rejected record {rec_id} with Client Error {response.status_code}. Response: {response.text}. Deleting to prevent queue block.")
+                    cursor.execute("DELETE FROM local_buffer WHERE id = ?", (rec_id,))
+                    conn.commit()
                 else:
-                    logging.warning(f"Server rejected record {rec_id}. Status: {response.status_code}. Response: {response.text}")
+                    logging.warning(f"Server error {response.status_code} for record {rec_id}. Response: {response.text}")
 
             except requests.exceptions.RequestException as e:
-                logging.error(f"Network error while syncing record {rec_id}: {e}")
+                logging.error(f"Network error while syncing record {rec_id} to {API_URL}: {e}")
                 # Network dropped or unreachable, leave in DB and try later
                 continue
 

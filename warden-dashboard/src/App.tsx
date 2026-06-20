@@ -6,6 +6,7 @@ import Surveillance from './pages/Surveillance';
 import Attendance from './pages/Attendance';
 import Students from './pages/Students';
 import Registration from './pages/Registration';
+import DeviceRegistry from './pages/DeviceRegistry';
 import { Login } from './pages/Login';
 
 export const App: React.FC = () => {
@@ -18,6 +19,7 @@ export const App: React.FC = () => {
           <Route path="attendance" element={<Attendance />} />
           <Route path="students" element={<Students />} />
           <Route path="students/register" element={<Registration />} />
+          <Route path="devices" element={<DeviceRegistry />} />
           <Route path="analytics" element={<div className="p-8"><h1 className="text-2xl text-primary">AI Analytics Coming Soon</h1></div>} />
           <Route path="insights" element={<div className="p-8"><h1 className="text-2xl text-primary">System Health Coming Soon</h1></div>} />
           <Route path="settings" element={<div className="p-8"><h1 className="text-2xl text-primary">Settings Coming Soon</h1></div>} />

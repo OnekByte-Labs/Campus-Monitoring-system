@@ -19,6 +19,7 @@ import math
 import time
 import numpy as np
 import sqlite3
+import cv2
 
 gi.require_version('Gst', '1.0')
 from gi.repository import Gst, GLib
@@ -54,14 +55,15 @@ def init_db():
             student_id TEXT,
             student_name TEXT,
             timestamp INTEGER,
-            similarity_score REAL
+            similarity_score REAL,
+            camera_id INTEGER
         )
     ''')
     conn.commit()
     conn.close()
     print("[DB] Initialized local RAM-disk SQLite buffer (local_buffer).")
 
-def save_to_buffer(student_id, student_name, similarity_score):
+def save_to_buffer(student_id, student_name, similarity_score, camera_id):
     """Instantly saves a detection event to the RAM-disk database."""
     current_timestamp = int(time.time())
     try:
@@ -69,9 +71,9 @@ def save_to_buffer(student_id, student_name, similarity_score):
         conn = sqlite3.connect(DB_FILE, timeout=5.0)
         cursor = conn.cursor()
         cursor.execute('''
-            INSERT INTO local_buffer (student_id, student_name, timestamp, similarity_score)
-            VALUES (?, ?, ?, ?)
-        ''', (student_id, student_name, current_timestamp, similarity_score))
+            INSERT INTO local_buffer (student_id, student_name, timestamp, similarity_score, camera_id)
+            VALUES (?, ?, ?, ?, ?)
+        ''', (student_id, student_name, current_timestamp, similarity_score, camera_id))
         conn.commit()
         conn.close()
     except Exception as e:
@@ -211,7 +213,7 @@ def osd_sink_pad_buffer_probe(pad, info, u_data):
                     uid = _uid_for_name(cached_name)
                     if uid is not None:
                         if (uid not in last_logged or now - last_logged[uid] > COOLDOWN_SEC):
-                            save_to_buffer(uid, cached_name, cached_score)
+                            save_to_buffer(uid, cached_name, cached_score, source_id)
                             last_logged[uid] = now
                             print(f"==================================================")
                             print(f"[ATTENDANCE] 💾 {cached_name} officially logged to RAM Disk!")
@@ -274,7 +276,7 @@ def osd_sink_pad_buffer_probe(pad, info, u_data):
                         
                         # DATABASE COOLDOWN LOGIC
                         if (user_id not in last_logged or now - last_logged[user_id] > COOLDOWN_SEC):
-                            save_to_buffer(user_id, name, score)
+                            save_to_buffer(user_id, name, score, source_id)
                             last_logged[user_id] = now
                             print(f"==================================================")
                             print(f"[ATTENDANCE] 💾 {name} officially logged to RAM Disk!")
@@ -308,6 +310,25 @@ def osd_sink_pad_buffer_probe(pad, info, u_data):
             ]
             for oid in stale_ids:
                 del track_id_cache[oid]
+
+        # Extract the image frame and save to RAM disk for the Flask stream
+        try:
+            nparray = pyds.get_nvds_buf_surface(hash(gst_buffer), frame_meta.batch_id)
+            frame_copy = np.array(nparray, copy=True, order='C')
+            frame_copy = cv2.cvtColor(frame_copy, cv2.COLOR_RGBA2BGR)
+            
+            import os
+            import tempfile
+            ram_disk = "/dev/shm" if os.name != 'nt' else tempfile.gettempdir()
+            
+            temp_path = f"{ram_disk}/frame_{source_id}_tmp.jpg"
+            final_path = f"{ram_disk}/frame_{source_id}.jpg"
+            
+            # Atomic write: write to temp file then replace, preventing read/write tearing
+            cv2.imwrite(temp_path, frame_copy)
+            os.replace(temp_path, final_path)
+        except Exception as e:
+            print(f"[VISION ERROR] ❌ Failed to save frame: {e}")
 
         try:
             l_frame = l_frame.next
@@ -453,13 +474,18 @@ def main(args):
     tiler.set_property("height", 720)
 
     nvvidconv = Gst.ElementFactory.make("nvvideoconvert", "convertor")
+    
+    capsfilter_rgba = Gst.ElementFactory.make("capsfilter", "capsfilter_rgba")
+    caps = Gst.Caps.from_string("video/x-raw(memory:NVMM), format=RGBA")
+    capsfilter_rgba.set_property("caps", caps)
+    
     nvosd = Gst.ElementFactory.make("nvdsosd", "onscreendisplay")
     transform = Gst.ElementFactory.make("nvegltransform", "nvegl-transform")
     sink = Gst.ElementFactory.make("nveglglessink", "nvvideo-renderer")
     sink.set_property('sync', False)
     sink.set_property('qos', False)
 
-    for elem in [pgie, tracker, sgie, tiler, nvvidconv, nvosd]:
+    for elem in [pgie, tracker, sgie, tiler, nvvidconv, capsfilter_rgba, nvosd]:
         pipeline.add(elem)
     if transform:
         pipeline.add(transform)
@@ -470,7 +496,8 @@ def main(args):
     tracker.link(sgie)
     sgie.link(tiler)
     tiler.link(nvvidconv)
-    nvvidconv.link(nvosd)
+    nvvidconv.link(capsfilter_rgba)
+    capsfilter_rgba.link(nvosd)
 
     if transform:
         nvosd.link(transform)
@@ -478,9 +505,9 @@ def main(args):
     else:
         nvosd.link(sink)
 
-    sgie_src_pad = sgie.get_static_pad("src")
-    if sgie_src_pad:
-        sgie_src_pad.add_probe(Gst.PadProbeType.BUFFER, osd_sink_pad_buffer_probe, 0)
+    osd_sink_pad = nvosd.get_static_pad("sink")
+    if osd_sink_pad:
+        osd_sink_pad.add_probe(Gst.PadProbeType.BUFFER, osd_sink_pad_buffer_probe, 0)
 
     loop = GLib.MainLoop()
     bus = pipeline.get_bus()

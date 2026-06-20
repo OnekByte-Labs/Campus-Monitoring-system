@@ -28,8 +28,8 @@ app.use(helmet());
 // 2. CORS for Dashboard
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, x-api-key');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, x-api-key, Authorization');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
   if (req.method === 'OPTIONS') return res.sendStatus(200);
   next();
 });
@@ -56,6 +56,7 @@ app.get('/health', (req, res) => {
 // Mount Routes
 app.use('/api/v1/events', eventRoutes);
 app.use('/api/v1/students', studentRoutes);
+app.use('/api/v1/devices', require('./routes/device.routes'));
 app.use('/api/v1/analytics', analyticsRoutes);
 
 // --- GLOBAL ERROR HANDLING --- //
