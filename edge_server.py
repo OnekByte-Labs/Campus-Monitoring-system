@@ -68,7 +68,11 @@ def start_enroll():
         # Example: venv_python = '/home/jetson/myenv/bin/python3'
         venv_python = os.getenv('VENV_PYTHON', 'python3') 
         
-        subprocess.Popen([venv_python, "enroll_trt.py", "--id", student_id])
+        import tempfile
+        ram_disk = "/dev/shm" if os.name != 'nt' else tempfile.gettempdir()
+        live_frame_path = f"{ram_disk}/frame_0.jpg"
+
+        subprocess.Popen([venv_python, "enroll_trt.py", live_frame_path, student_id])
         return jsonify({"status": "capturing"}), 200
     except Exception as e:
         logging.error(f"Failed to start enrollment: {e}")
