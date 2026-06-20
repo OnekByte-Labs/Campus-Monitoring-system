@@ -28,7 +28,7 @@ from db_utils import init_db, save_embedding, has_embedding
 
 # ---------- CONFIG ---------- #
 MODEL_PATH = "models/w600k_mbf.onnx"
-IMAGE_DB_DIR = "known_faces"
+IMAGE_DB_DIR = "image_db"
 SUPPORTED_EXTENSIONS = ('.jpg', '.jpeg', '.png', '.bmp')
 
 

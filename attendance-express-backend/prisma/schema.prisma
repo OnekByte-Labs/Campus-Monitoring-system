@@ -1,0 +1,37 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model AttendanceLog {
+  id               Int      @id @default(autoincrement())
+  student_id       String   @db.VarChar(50)
+  student_name     String?  @db.VarChar(100)
+  camera_id        Int?
+  similarity_score Float
+  direction        String   @default("IN") @db.VarChar(10)
+  timestamp        DateTime // Stores exact local time if properly configured
+  created_at       DateTime @default(now())
+
+  @@index([student_id])
+  @@index([timestamp])
+  @@map("attendance_logs")
+}
+
+model Student {
+  id                Int      @id @default(autoincrement())
+  student_id        String   @unique @db.VarChar(50)
+  full_name         String   @db.VarChar(100)
+  enrollment_status String   @default("ACTIVE") @db.VarChar(20)
+  created_at        DateTime @default(now())
+
+  @@map("students")
+}
