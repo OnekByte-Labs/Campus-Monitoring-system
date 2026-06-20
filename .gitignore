@@ -30,6 +30,7 @@ nvdsinfer_custom_impl_Yolo/
 # Node.js / Backend Service
 node_modules/
 package-lock.json
+warden-dashboard/.vite/deps 
 
 # IDEs
 .vscode/
