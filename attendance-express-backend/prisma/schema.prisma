@@ -27,11 +27,23 @@ model AttendanceLog {
 }
 
 model Student {
-  id                Int      @id @default(autoincrement())
+  id                String   @id @default(uuid())
   student_id        String   @unique @db.VarChar(50)
   full_name         String   @db.VarChar(100)
-  enrollment_status String   @default("ACTIVE") @db.VarChar(20)
+  room_number       String   @default("UNASSIGNED") @db.VarChar(20)
+  status            String   @default("ACTIVE") @db.VarChar(20)
   created_at        DateTime @default(now())
 
   @@map("students")
+}
+
+model Device {
+  id         String   @id @default(uuid())
+  device_id  String   @unique @db.VarChar(50) // This will store "0", "1", etc.
+  name       String   @db.VarChar(100)
+  role       String   @db.VarChar(10) // "IN" or "OUT"
+  status     String   @default("ONLINE") @db.VarChar(20)
+  created_at DateTime @default(now())
+
+  @@map("devices")
 }

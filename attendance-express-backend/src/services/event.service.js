@@ -13,30 +13,25 @@ class EventService {
     try {
       const { student_id, student_name, timestamp, similarity_score, camera_id } = payload;
       
-      // Calculate local timestamp just like the MQTT listener did
-      // Or we can rely on the Jetson passing the absolute epoch
       const exactTime = new Date(timestamp * 1000);
 
-      // Fetch the last attendance record for this student
-      const lastRecord = await prisma.attendanceLog.findFirst({
-        where: { student_id },
-        orderBy: { timestamp: 'desc' },
+      // Fetch the registered Device using camera_id (converted to string)
+      const deviceIdStr = camera_id !== undefined ? String(camera_id) : 'UNKNOWN';
+      const device = await prisma.device.findUnique({
+        where: { device_id: deviceIdStr }
       });
 
-      // Determine the direction
-      let newDirection = 'IN';
-      if (lastRecord && lastRecord.direction === 'IN') {
-        newDirection = 'OUT';
-      }
+      // Default to IN if device not found or no role defined
+      const direction = device ? device.role : 'IN';
 
       const record = await prisma.attendanceLog.create({
         data: {
           student_id,
           student_name: student_name || "Unknown Student",
-          camera_id: camera_id ? parseInt(camera_id, 10) : null,
+          camera_id: camera_id !== undefined ? parseInt(camera_id, 10) : null,
           similarity_score: parseFloat(similarity_score),
           timestamp: exactTime,
-          direction: newDirection,
+          direction: direction,
         },
       });
 

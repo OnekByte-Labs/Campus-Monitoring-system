@@ -23,7 +23,7 @@ def sync_data():
         cursor = conn.cursor()
 
         # Fetch unsent records
-        cursor.execute("SELECT id, student_id, student_name, timestamp, similarity_score FROM local_buffer")
+        cursor.execute("SELECT id, student_id, student_name, timestamp, similarity_score, camera_id FROM local_buffer")
         records = cursor.fetchall()
 
         if not records:
@@ -34,7 +34,7 @@ def sync_data():
 
         # Process each record
         for record in records:
-            rec_id, student_id, student_name, timestamp, similarity_score = record
+            rec_id, student_id, student_name, timestamp, similarity_score, camera_id = record
             
             payload = {
                 "student_id": student_id,
@@ -42,7 +42,7 @@ def sync_data():
                 "timestamp": timestamp,
                 "similarity_score": similarity_score,
                 "device_id": "JETSON_NANO_01",
-                "camera_id": "CAM_01_ENTRANCE"
+                "camera_id": str(camera_id) if camera_id is not None else None
             }
 
             try:

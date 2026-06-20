@@ -56,6 +56,7 @@ app.get('/health', (req, res) => {
 // Mount Routes
 app.use('/api/v1/events', eventRoutes);
 app.use('/api/v1/students', studentRoutes);
+app.use('/api/v1/devices', require('./routes/device.routes'));
 app.use('/api/v1/analytics', analyticsRoutes);
 
 // --- GLOBAL ERROR HANDLING --- //

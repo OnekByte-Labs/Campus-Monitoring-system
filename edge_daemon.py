@@ -54,14 +54,15 @@ def init_db():
             student_id TEXT,
             student_name TEXT,
             timestamp INTEGER,
-            similarity_score REAL
+            similarity_score REAL,
+            camera_id INTEGER
         )
     ''')
     conn.commit()
     conn.close()
     print("[DB] Initialized local RAM-disk SQLite buffer (local_buffer).")
 
-def save_to_buffer(student_id, student_name, similarity_score):
+def save_to_buffer(student_id, student_name, similarity_score, camera_id):
     """Instantly saves a detection event to the RAM-disk database."""
     current_timestamp = int(time.time())
     try:
@@ -69,9 +70,9 @@ def save_to_buffer(student_id, student_name, similarity_score):
         conn = sqlite3.connect(DB_FILE, timeout=5.0)
         cursor = conn.cursor()
         cursor.execute('''
-            INSERT INTO local_buffer (student_id, student_name, timestamp, similarity_score)
-            VALUES (?, ?, ?, ?)
-        ''', (student_id, student_name, current_timestamp, similarity_score))
+            INSERT INTO local_buffer (student_id, student_name, timestamp, similarity_score, camera_id)
+            VALUES (?, ?, ?, ?, ?)
+        ''', (student_id, student_name, current_timestamp, similarity_score, camera_id))
         conn.commit()
         conn.close()
     except Exception as e:
@@ -211,7 +212,7 @@ def osd_sink_pad_buffer_probe(pad, info, u_data):
                     uid = _uid_for_name(cached_name)
                     if uid is not None:
                         if (uid not in last_logged or now - last_logged[uid] > COOLDOWN_SEC):
-                            save_to_buffer(uid, cached_name, cached_score)
+                            save_to_buffer(uid, cached_name, cached_score, source_id)
                             last_logged[uid] = now
                             print(f"==================================================")
                             print(f"[ATTENDANCE] 💾 {cached_name} officially logged to RAM Disk!")
@@ -274,7 +275,7 @@ def osd_sink_pad_buffer_probe(pad, info, u_data):
                         
                         # DATABASE COOLDOWN LOGIC
                         if (user_id not in last_logged or now - last_logged[user_id] > COOLDOWN_SEC):
-                            save_to_buffer(user_id, name, score)
+                            save_to_buffer(user_id, name, score, source_id)
                             last_logged[user_id] = now
                             print(f"==================================================")
                             print(f"[ATTENDANCE] 💾 {name} officially logged to RAM Disk!")

@@ -1,35 +1,60 @@
 const { PrismaClient } = require('@prisma/client');
-const logger = require('../utils/logger');
 const prisma = new PrismaClient();
+const logger = require('../utils/logger');
 
 class StudentController {
-  async createStudent(req, res, next) {
+  async registerStudent(req, res, next) {
     try {
-      const { student_id, full_name, enrollment_status } = req.body;
+      const { full_name, student_id, room_number } = req.body;
 
-      if (!student_id || !full_name) {
-        return res.status(400).json({ success: false, error: 'Missing student_id or full_name' });
+      if (!full_name || !student_id || !room_number) {
+        return res.status(400).json({ success: false, error: 'full_name, student_id, and room_number are required' });
       }
 
-      // Upsert student so it doesn't fail on duplicate runs
-      const student = await prisma.student.upsert({
-        where: { student_id },
-        update: { full_name, enrollment_status: enrollment_status || 'ACTIVE' },
-        create: {
-          student_id,
+      // Check if student already exists
+      const existing = await prisma.student.findUnique({
+        where: { student_id }
+      });
+
+      if (existing) {
+        return res.status(409).json({ success: false, error: 'Student ID already exists' });
+      }
+
+      const student = await prisma.student.create({
+        data: {
           full_name,
-          enrollment_status: enrollment_status || 'ACTIVE'
+          student_id,
+          room_number,
+          status: 'ACTIVE'
         }
       });
 
-      logger.info(`Student created/updated: ${student.student_id}`);
+      logger.info(`New student enrolled: ${student_id} - ${full_name}`);
 
-      return res.status(201).json({
+      res.status(201).json({
         success: true,
-        message: 'Student registered successfully',
         data: student
       });
     } catch (error) {
+      logger.error('Error registering student:', error);
+      next(error);
+    }
+  }
+
+  async getAllStudents(req, res, next) {
+    try {
+      const students = await prisma.student.findMany({
+        orderBy: {
+          created_at: 'desc'
+        }
+      });
+
+      res.status(200).json({
+        success: true,
+        data: students
+      });
+    } catch (error) {
+      logger.error('Error fetching students:', error);
       next(error);
     }
   }
