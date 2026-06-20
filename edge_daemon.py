@@ -317,6 +317,7 @@ def osd_sink_pad_buffer_probe(pad, info, u_data):
             frame_copy = np.array(nparray, copy=True, order='C')
             frame_copy = cv2.cvtColor(frame_copy, cv2.COLOR_RGBA2BGR)
             
+            import os
             import tempfile
             ram_disk = "/dev/shm" if os.name != 'nt' else tempfile.gettempdir()
             

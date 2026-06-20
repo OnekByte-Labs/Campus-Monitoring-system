@@ -61,15 +61,15 @@ export default function DeviceRegistry() {
   };
 
   const handleDelete = async (id: string) => {
-    if (window.confirm("Are you sure you want to delete this hardware node?")) {
-      try {
-        const res = await axios.delete(`http://localhost:3000/api/v1/devices/${id}`);
-        if (res.data && res.data.success) {
-          setDevices(prev => prev.filter(device => device.id !== id));
-        }
-      } catch (err: any) {
-        alert(err.response?.data?.error || 'Failed to delete device.');
+    try {
+      const res = await axios.delete(`http://localhost:3000/api/v1/devices/${id}`);
+      if (res.data && res.data.success) {
+        setDevices(prev => prev.filter(device => device.id !== id));
+      } else {
+        alert("Server responded but success was false.");
       }
+    } catch (err: any) {
+      alert(`Delete failed: ${err.response?.data?.error || err.message}`);
     }
   };
 
