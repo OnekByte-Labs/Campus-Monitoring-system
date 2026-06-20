@@ -63,9 +63,12 @@ def start_enroll():
     logging.info(f"Starting enrollment for student: {student_id}")
     
     try:
-        # Run enroll_trt.py asynchronously using the same Python interpreter (venv)
-        import sys
-        subprocess.Popen([sys.executable, "enroll_trt.py", "--id", student_id])
+        # Since edge_server runs globally, we must explicitly point to the venv's python binary
+        # Replace the default 'python3' below with the absolute path to your venv's python!
+        # Example: venv_python = '/home/jetson/myenv/bin/python3'
+        venv_python = os.getenv('VENV_PYTHON', 'python3') 
+        
+        subprocess.Popen([venv_python, "enroll_trt.py", "--id", student_id])
         return jsonify({"status": "capturing"}), 200
     except Exception as e:
         logging.error(f"Failed to start enrollment: {e}")
