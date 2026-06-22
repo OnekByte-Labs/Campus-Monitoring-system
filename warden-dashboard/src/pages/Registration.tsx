@@ -15,6 +15,8 @@ export default function Registration() {
   
   const [isScanning, setIsScanning] = useState(false);
   const [enrollmentStatus, setEnrollmentStatus] = useState<'idle' | 'scanning' | 'success'>('idle');
+  const [captureStep, setCaptureStep] = useState(0);
+  const angles = ['Center', 'Left', 'Right', 'Up', 'Down'];
   
   const [toast, setToast] = useState<{message: string, type: 'info' | 'success' | 'error'} | null>(null);
 
@@ -49,9 +51,10 @@ export default function Registration() {
     setIsSubmitting(true);
 
     try {
-      const res = await axios.post('http://localhost:3000/api/v1/students', formData);
+      const res = await axios.post(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000'}/api/v1/students`, formData);
       if (res.status === 201) {
         setIsRegistered(true);
+        setCaptureStep(0);
         showToast('Identity Profile Created. Ready for scan.', 'success');
       }
     } catch (err: any) {
@@ -66,15 +69,18 @@ export default function Registration() {
     
     setIsScanning(true);
     setEnrollmentStatus('scanning');
-    showToast('Scanning Multi-Angle Biometrics... Instruct student to look left, right, and center.', 'info');
+    showToast(`Capturing angle: ${angles[captureStep]}... Please hold still.`, 'info');
 
     try {
-      await axios.post('http://localhost:3000/api/v1/students/enroll-biometric', {
+      await axios.post(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000'}/api/v1/students/enroll-biometric`, {
         student_id: formData.student_id
       });
       
-      // Artificially delay UI success to match Jetson's 5-second capture loop
-      setTimeout(() => {
+      // Since Jetson is now configured to capture exactly 1 frame per request, 
+      // we immediately succeed this step and increment.
+      const nextStep = captureStep + 1;
+      
+      if (nextStep >= 5) {
         setEnrollmentStatus('success');
         setIsScanning(false);
         showToast('Multi-Angle Biometric Capture Complete.', 'success');
@@ -83,9 +89,15 @@ export default function Registration() {
         setTimeout(() => {
           setFormData({ full_name: '', student_id: '', room_number: '' });
           setIsRegistered(false);
+          setCaptureStep(0);
           setEnrollmentStatus('idle');
         }, 3000);
-      }, 6000);
+      } else {
+        setCaptureStep(nextStep);
+        setIsScanning(false);
+        setEnrollmentStatus('idle');
+        showToast(`Capture successful. Next: Please Look ${angles[nextStep]}`, 'success');
+      }
       
     } catch (err: any) {
       setIsScanning(false);
@@ -228,7 +240,7 @@ export default function Registration() {
                 type="button"
                 disabled={!isRegistered || isScanning || enrollmentStatus === 'success'}
                 onClick={handleStartScan}
-                className={`w-full relative overflow-hidden group py-5 rounded-2xl font-headline-md text-xl font-bold flex items-center justify-center gap-3 transition-all ${
+                className={`w-full relative overflow-hidden group py-5 rounded-2xl font-headline-md text-xl font-bold flex flex-col items-center justify-center gap-1 transition-all ${
                   !isRegistered 
                     ? 'bg-surface-container-lowest text-on-surface-variant opacity-50 cursor-not-allowed'
                     : enrollmentStatus === 'success'
@@ -241,11 +253,14 @@ export default function Registration() {
                 )}
                 
                 {enrollmentStatus === 'scanning' ? (
-                  <><Cpu size={24} className="animate-pulse" /> SCANNING MULTI-ANGLE BIOMETRICS...</>
+                  <div className="flex items-center gap-3"><Cpu size={24} className="animate-pulse" /> CAPTURING {angles[captureStep].toUpperCase()}...</div>
                 ) : enrollmentStatus === 'success' ? (
-                  <><CheckCircle size={24} /> ENROLLMENT COMPLETE</>
+                  <div className="flex items-center gap-3"><CheckCircle size={24} /> ENROLLMENT COMPLETE</div>
                 ) : (
-                  <><Fingerprint size={24} /> START BIOMETRIC SCAN</>
+                  <>
+                    <div className="flex items-center gap-3"><Camera size={24} /> CAPTURE ANGLE {captureStep + 1}/5</div>
+                    <div className="text-sm font-normal opacity-80 font-mono tracking-widest">INSTRUCTION: LOOK {angles[captureStep].toUpperCase()}</div>
+                  </>
                 )}
               </button>
             </div>
@@ -265,7 +280,7 @@ export default function Registration() {
                   <span className="text-white font-mono text-xs font-bold tracking-wider">CAM_0_ENTRANCE</span>
                 </div>
                 <img 
-                  src="http://192.168.1.7:5001/video_feed_0" 
+                  src={`http://${import.meta.env.VITE_JETSON_IP || '192.168.1.8'}:5001/video_feed_0`} 
                   alt="Live Feed 0"
                   className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity"
                 />
@@ -278,7 +293,7 @@ export default function Registration() {
                   <span className="text-white font-mono text-xs font-bold tracking-wider">CAM_1_EXIT</span>
                 </div>
                 <img 
-                  src="http://192.168.1.7:5001/video_feed_1" 
+                  src={`http://${import.meta.env.VITE_JETSON_IP || '192.168.1.8'}:5001/video_feed_1`} 
                   alt="Live Feed 1"
                   className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity"
                 />

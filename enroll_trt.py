@@ -234,7 +234,7 @@ def enroll_single(image_path, name):
     print(f"Model: {MODEL_PATH}")
     
     captures = 0
-    max_captures = 5
+    max_captures = 1
     
     # Loop until 5 successful face captures
     while captures < max_captures:
