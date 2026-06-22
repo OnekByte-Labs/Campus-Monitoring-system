@@ -89,7 +89,7 @@ export default function Surveillance() {
                 
                 <div className="relative aspect-video rounded-2xl bg-black border border-secondary/20 overflow-hidden shadow-[0_0_30px_rgba(0,229,203,0.1)]">
                   <img 
-                    src="http://192.168.1.7:5001/video_feed_0" 
+                    src={`http://${import.meta.env.VITE_JETSON_IP || '192.168.1.8'}:5001/video_feed_0`} 
                     alt="Entry Gate" 
                     className="w-full h-full object-cover opacity-80" 
                   />
@@ -135,7 +135,7 @@ export default function Surveillance() {
                 
                 <div className="relative aspect-video rounded-2xl bg-black border border-error/20 overflow-hidden shadow-[0_0_30px_rgba(255,50,50,0.1)]">
                   <img 
-                    src="http://192.168.1.7:5001/video_feed_1" 
+                    src={`http://${import.meta.env.VITE_JETSON_IP || '192.168.1.8'}:5001/video_feed_1`} 
                     alt="Exit Gate" 
                     className="w-full h-full object-cover opacity-80" 
                   />

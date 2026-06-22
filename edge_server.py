@@ -66,7 +66,7 @@ def start_enroll():
         # Since edge_server runs globally, we must explicitly point to the venv's python binary
         # Replace the default 'python3' below with the absolute path to your venv's python!
         # Example: venv_python = '/home/jetson/myenv/bin/python3'
-        venv_python = os.getenv('VENV_PYTHON', 'python3') 
+        venv_python = os.getenv('VENV_PYTHON', './venv/bin/python3') 
         
         import tempfile
         ram_disk = "/dev/shm" if os.name != 'nt' else tempfile.gettempdir()

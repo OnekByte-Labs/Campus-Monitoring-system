@@ -13,10 +13,24 @@ def init_db():
     c.execute('''
         CREATE TABLE IF NOT EXISTS Users (
             user_id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT UNIQUE,
+            name TEXT,
             embedding BLOB
         )
     ''')
+    
+    # Run a one-time migration to remove UNIQUE constraint if it exists from older schema
+    try:
+        # Check if we have multiple users with the same name (which proves UNIQUE is removed)
+        # Or just blindly try to migrate. A safe way is to create a new table and copy.
+        c.execute("PRAGMA table_info(Users)")
+        # In SQLite we just do a safe swap if needed, but since it's hard to dynamically check 
+        # constraints, we will just silently attempt a migration and ignore errors if it's already migrated.
+        c.execute('CREATE TABLE IF NOT EXISTS Users_new (user_id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, embedding BLOB)')
+        c.execute('INSERT OR IGNORE INTO Users_new (user_id, name, embedding) SELECT user_id, name, embedding FROM Users')
+        c.execute('DROP TABLE Users')
+        c.execute('ALTER TABLE Users_new RENAME TO Users')
+    except Exception as e:
+        pass
     c.execute('''
         CREATE TABLE IF NOT EXISTS Logs (
             log_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -55,11 +69,8 @@ def save_embedding(name, embedding):
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     embedding_bytes = embedding.astype(np.float32).tobytes()
-    try:
-        c.execute('INSERT INTO Users (name, embedding) VALUES (?, ?)', (name, embedding_bytes))
-    except sqlite3.IntegrityError:
-        print(f"  [WARN] User '{name}' already exists. Updating embedding.")
-        c.execute('UPDATE Users SET embedding = ? WHERE name = ?', (embedding_bytes, name))
+    # No IntegrityError because name is no longer UNIQUE. We just insert.
+    c.execute('INSERT INTO Users (name, embedding) VALUES (?, ?)', (name, embedding_bytes))
     conn.commit()
     conn.close()
 

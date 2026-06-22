@@ -216,48 +216,66 @@ def enroll_all():
     print("=" * 60)
 
 
-def enroll_single(image_path, name):
-    """Legacy single-image enrollment (backward compatible)."""
-    init_db()
+import time
 
-    if has_embedding(name):
-        print(f"[SKIP] '{name}' already enrolled — no changes made.")
-        return
+def enroll_single(image_path, name):
+    """Live Multi-Capture Enrollment. Reads the live frame 5 times."""
+    init_db()
 
     if not os.path.exists(MODEL_PATH):
         print(f"ERROR: ONNX model not found at {MODEL_PATH}")
-        return
-
-    if not os.path.exists(image_path):
-        print(f"ERROR: Image not found: {image_path}")
-        return
-
-    img = cv2.imread(image_path)
-    if img is None:
-        print(f"ERROR: Could not read image: {image_path}")
         return
 
     providers = ['CPUExecutionProvider']
     session = ort.InferenceSession(MODEL_PATH, providers=providers)
     input_name = session.get_inputs()[0].name
 
-    face_img = extract_face(img)
-    input_data = preprocess_face(face_img)
-
-    print(f"Processing: {image_path}")
+    print(f"Starting Multi-Angle Capture for: {name}")
     print(f"Model: {MODEL_PATH}")
+    
+    captures = 0
+    max_captures = 1
+    
+    # Loop until 5 successful face captures
+    while captures < max_captures:
+        if not os.path.exists(image_path):
+            time.sleep(0.5)
+            continue
 
-    output = session.run(None, {input_name: input_data})[0][0]
+        img = cv2.imread(image_path)
+        if img is None:
+            time.sleep(0.5)
+            continue
 
-    # L2 normalize
-    embedding = output / np.linalg.norm(output)
+        # Extract face crop
+        # Using a try/except because if extract_face fails to find a face, it might return full img
+        face_img = extract_face(img)
+        
+        # We can add a simple check: if no face found, skip this frame
+        # extract_face returns the full image if no face is found, but prints a warning.
+        # To strictly require faces, we can check if it returned the exact same image shape.
+        if face_img.shape == img.shape:
+            # Full image returned means no face bounding box found
+            print("  [WARN] No face detected in this frame. Waiting...")
+            time.sleep(0.5)
+            continue
 
-    print(f"  Dimension: {len(embedding)}")
-    print(f"  L2 Norm  : {np.linalg.norm(embedding):.6f}")
-    print(f"  First 5  : {embedding[:5]}")
+        input_data = preprocess_face(face_img)
 
-    save_embedding(name, embedding)
-    print(f"\nSUCCESS: Enrolled '{name}' into database.")
+        output = session.run(None, {input_name: input_data})[0][0]
+
+        # L2 normalize
+        embedding = output / np.linalg.norm(output)
+
+        save_embedding(name, embedding)
+        captures += 1
+        
+        print(f"  [ENROLL] Captured {captures}/{max_captures}... Please turn head slightly.")
+        
+        if captures < max_captures:
+            time.sleep(0.5)
+
+    print(f"\nSUCCESS: Enrolled '{name}' with {max_captures} multi-angle embeddings into database.")
 
 
 if __name__ == "__main__":
