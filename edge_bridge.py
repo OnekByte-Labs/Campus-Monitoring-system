@@ -9,7 +9,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 
 DB_PATH = '/dev/shm/attendance.db'
 import os
-BACKEND_IP = os.getenv('BACKEND_IP', '192.168.1.8')
+BACKEND_IP = os.getenv('BACKEND_IP', '192.168.1.7')
 API_URL = f'http://{BACKEND_IP}:3000/api/v1/events/attendance'
 API_KEY = 'sk_edge_attendance_9f8d7a6b5c4d3e2f1'
 
