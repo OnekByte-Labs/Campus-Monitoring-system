@@ -14,9 +14,15 @@ To ensure robust data delivery even in spotty network conditions, the edge node 
 - **Local Buffer**: `attendance_buffer.db` (SQLite). Detections are instantly saved here to prevent data loss.
 - **MQTT Sync Daemon**: An isolated background thread polls the SQLite database and publishes the events via MQTT (QoS 1). Records are only deleted from the buffer after receiving a `PUBACK` confirmation from the broker.
 
-### 2. Cloud Backend (Node.js & Supabase)
-- **MQTT Listener (`mqttListener.js`)**: Subscribes to the attendance topic (`campus/gates/+/attendance`) and parses incoming JSON payloads.
-- **Supabase Integration**: Uses the official `@supabase/supabase-js` client to securely insert attendance records into your cloud PostgreSQL database using the REST API.
+### 2. Cloud Backend (Node.js & Supabase/Prisma)
+- **Express Server**: Handles API requests from the React dashboard.
+- **Prisma/Supabase Integration**: Uses Prisma ORM to securely insert and manage attendance and student records in a PostgreSQL database.
+- **Dynamic Routing**: Configured via `.env` files to dynamically route hardware triggers to the Jetson Nano IP.
+
+### 3. Warden Dashboard (React/Vite)
+- **Live Surveillance**: Pulls multi-part JPEG streams directly from the Jetson's RAM disk.
+- **Manual Multi-Angle Capture**: A guided, 5-step interactive UX that allows the warden to capture a robust 3D facial profile (Center, Left, Right, Up, Down).
+- **Environment Driven**: Connects to the Jetson and Backend dynamically using `VITE_JETSON_IP` and `VITE_BACKEND_URL` from the local `.env` file.
 
 ---
 
@@ -66,11 +72,12 @@ FACE_Detection_Jetson/
    npm install
    ```
 3. **Configure Environment Variables**:
-   Create a `.env` file containing your Supabase credentials:
+   Create a `.env` file containing your Supabase credentials and the Jetson IP:
    ```env
-   SUPABASE_URL="https://your-project.supabase.co"
-   SUPABASE_SERVICE_ROLE_KEY="your-service-role-key"
-   MQTT_BROKER_URL="mqtt://broker.hivemq.com:1883"
+   PORT=3000
+   DATABASE_URL="postgresql://postgres:postgres@localhost:5432/postgres"
+   DIRECT_URL="postgresql://postgres:postgres@localhost:5432/postgres"
+   JETSON_NANO_IP=192.168.1.8
    ```
 4. **Setup Supabase Database**:
    Run the following SQL in your Supabase SQL Editor to create the required table:

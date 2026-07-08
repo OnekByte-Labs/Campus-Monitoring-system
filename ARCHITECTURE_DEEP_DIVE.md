@@ -187,3 +187,21 @@ The incoming JSON payload looks like this:
 1. **Validation**: The backend ensures no malformed payloads crash the server.
 2. **Time Conversion**: It converts the UNIX timestamp (seconds since epoch) into a standard ISO-8601 string (`2026-05-30T11:34:56.000Z`).
 3. **Insertion**: It utilizes the official `@supabase/supabase-js` client. Unlike a direct Postgres `pg` connection which requires maintaining a stateful TCP connection pool, the Supabase client uses stateless HTTP REST API calls. This is highly scalable and immune to connection pooling exhaustion, securely inserting the record into the `attendance_logs` table.
+
+---
+
+## 7. Manual Multi-Angle Enrollment Architecture
+
+To build a highly robust 3D-like facial profile, the system allows storing multiple 512-D embeddings per student.
+
+### 7.1 SQLite Schema Modification
+By dropping the `UNIQUE` constraint on the `name` column in the edge SQLite database, the system permits multiple exact `student_id` entries. When `edge_daemon.py` queries the database during live surveillance, it performs O(1) vectorized matching across *all* stored embeddings. If the live feed matches *any* of a student's stored angles (left, right, center, up, down), a successful match is instantly registered.
+
+### 7.2 UI State Machine & Capture Flow
+The enrollment process leverages a fully manual, React-driven state machine:
+1. **Interactive Prompt**: The `warden-dashboard` instructs the user to look in a specific direction (Center, Left, Right, Up, Down).
+2. **Action**: The Warden clicks the "Capture" button.
+3. **Execution**: The Express backend relays the trigger to `edge_server.py`, which snatches exactly **1 frame** directly from the Jetson's `/dev/shm` RAM disk, passes it through the TensorRT ArcFace model, and writes the resulting embedding into SQLite.
+4. **Progression**: The UI steps forward, guiding the student through all 5 angles until a complete profile is built. 
+
+This manual flow completely decentralizes control, placing the synchronization logic inside the React application rather than hardcoding arbitrary delays into the Python backend.
