@@ -15,13 +15,19 @@ export const Sidebar: React.FC = () => {
   return (
     <aside className="fixed left-0 top-0 h-screen w-64 bg-surface-container neumorphic-high-lift flex flex-col py-stack-lg gap-stack-md z-50">
       <div className="px-margin-desktop mb-stack-lg">
-        <h1 className="font-headline-md text-headline-md text-primary tracking-tighter">OneKByte Labs</h1>
-        <div className="mt-stack-sm flex items-center gap-stack-sm">
+        <div className="flex items-center justify-between gap-stack-sm mb-stack-sm">
+          <img 
+            src="/onekbyte_labs_logo.png" 
+            alt="OneKByte Labs Logo" 
+            className="h-10 w-auto object-contain flex-shrink-0"
+          />
+        </div>
+        <div className="flex items-center gap-stack-sm">
           <div className="w-10 h-10 rounded-full neumorphic-convex flex items-center justify-center overflow-hidden border border-outline-variant/20">
             <img 
               alt="Admin Avatar" 
               className="w-full h-full object-cover" 
-              src="https://ui-avatars.com/api/?name=Admin+User&background=3a3841&color=e6e0ed" 
+              src="https://ui-avatars.com/api/?name=Admin+User&background=ffecd9&color=2d2416" 
             />
           </div>
           <div>
