@@ -105,7 +105,7 @@ export const Login: React.FC = () => {
         {!showCard && (
           <button 
             onClick={() => setShowCard(true)}
-            className="w-full h-16 backdrop-blur-sm bg-gradient-to-r from-white/15 to-white/10 rounded-3xl font-headline-md text-on-surface border border-white/25 hover:from-white/20 hover:to-white/15 active:scale-95 transition-all duration-300 flex items-center justify-center gap-stack-sm animate-in fade-in slide-in-from-bottom-4 duration-700"
+            className="w-full h-16 backdrop-blur-sm bg-gradient-to-r from-white/15 to-white/10 rounded-3xl font-headline-md text-on-surface border border-white/25 hover:from-white/20 hover:to-white/15 active:scale-95 transition-all duration-300 flex items-center justify-center gap-stack-sm animate-in fade-in slide-in-from-bottom-4 duration-700 mt-20"
             style={{
               boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.1), inset 0 0 0 1px rgba(255, 255, 255, 0.25)',
               backdropFilter: 'blur(10px)'
