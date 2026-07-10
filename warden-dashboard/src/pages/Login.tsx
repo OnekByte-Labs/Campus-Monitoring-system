@@ -24,16 +24,16 @@ export const Login: React.FC = () => {
       <main className="w-full max-w-md px-margin-mobile relative z-10">
         <form onSubmit={handleLogin} className="flex flex-col gap-stack-lg animate-in fade-in slide-in-from-bottom-8 duration-700">
           {/* Login Box - Premium Liquid Glass (Ultra-Transparent) */}
-          <div className="relative backdrop-blur-[16px] bg-white/20 rounded-[40px] p-stack-lg flex flex-col gap-stack-md border border-white/30 shadow-2xl" style={{
-            boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.15), inset 0 0 0 1px rgba(255, 255, 255, 0.4)',
-            backdropFilter: 'blur(16px) saturate(180%)'
+          <div className="relative backdrop-blur-[20px] bg-white/5 rounded-[40px] p-stack-lg flex flex-col gap-stack-md border border-white/20 shadow-2xl" style={{
+            boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.08), inset 0 0 0 1px rgba(255, 255, 255, 0.25)',
+            backdropFilter: 'blur(20px) saturate(200%)'
           }}>
             {/* Email Field */}
             <div className="flex flex-col gap-unit">
               <label className="font-label-md text-label-md text-on-surface ml-stack-sm mb-1" htmlFor="admin_id">ADMIN_ID</label>
               <div className="relative group">
                 <input 
-                  className="w-full h-14 px-12 backdrop-blur-md bg-white/10 rounded-2xl font-body-md text-on-surface border border-white/20 focus:outline-none focus:ring-2 focus:ring-white/40 focus:border-white/40 transition-all placeholder:text-on-surface/40" 
+                  className="w-full h-14 px-12 backdrop-blur-sm bg-white/5 rounded-2xl font-body-md text-on-surface border border-white/15 focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-white/30 transition-all placeholder:text-on-surface/50" 
                   id="admin_id" 
                   placeholder="system_controller_01" 
                   type="text" 
@@ -48,7 +48,7 @@ export const Login: React.FC = () => {
               <label className="font-label-md text-label-md text-on-surface ml-stack-sm mb-1" htmlFor="access_key">ACCESS_KEY</label>
               <div className="relative">
                 <input 
-                  className="w-full h-14 px-12 backdrop-blur-md bg-white/10 rounded-2xl font-body-md text-on-surface border border-white/20 focus:outline-none focus:ring-2 focus:ring-white/40 focus:border-white/40 transition-all placeholder:text-on-surface/40" 
+                  className="w-full h-14 px-12 backdrop-blur-sm bg-white/5 rounded-2xl font-body-md text-on-surface border border-white/15 focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-white/30 transition-all placeholder:text-on-surface/50" 
                   id="access_key" 
                   placeholder="••••••••••••" 
                   type="password" 
@@ -62,7 +62,7 @@ export const Login: React.FC = () => {
             {/* Secondary Options */}
             <div className="flex items-center justify-between px-unit mt-2">
               <label className="flex items-center gap-stack-sm cursor-pointer group">
-                <div className="w-5 h-5 rounded backdrop-blur-md bg-white/10 border border-white/20 flex items-center justify-center transition-all group-hover:scale-105 group-hover:bg-white/20">
+                <div className="w-5 h-5 rounded backdrop-blur-sm bg-white/5 border border-white/15 flex items-center justify-center transition-all group-hover:scale-105 group-hover:bg-white/10">
                   <div className="w-2 h-2 rounded-full bg-primary opacity-0 transition-opacity peer-checked:opacity-100"></div>
                 </div>
                 <input className="hidden peer" type="checkbox" />
@@ -72,8 +72,8 @@ export const Login: React.FC = () => {
             </div>
             
             {/* Submit Button */}
-            <button type="submit" className="mt-stack-sm w-full h-16 backdrop-blur-md bg-gradient-to-r from-white/20 to-white/10 rounded-2xl font-headline-md text-on-surface border border-white/30 hover:from-white/25 hover:to-white/15 active:scale-95 transition-all duration-200 group flex items-center justify-center gap-stack-sm shadow-lg hover:shadow-xl" style={{
-              boxShadow: '0 4px 15px 0 rgba(0, 0, 0, 0.1)'
+            <button type="submit" className="mt-stack-sm w-full h-16 backdrop-blur-sm bg-gradient-to-r from-white/8 to-white/5 rounded-2xl font-headline-md text-on-surface border border-white/15 hover:from-white/12 hover:to-white/8 active:scale-95 transition-all duration-200 group flex items-center justify-center gap-stack-sm shadow-lg hover:shadow-xl" style={{
+              boxShadow: '0 4px 15px 0 rgba(0, 0, 0, 0.08)'
             }}>
               <span className="font-bold">INITIALIZE CORE</span>
               <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform" style={{ fontVariationSettings: "'FILL' 1" }}>bolt</span>
@@ -83,11 +83,11 @@ export const Login: React.FC = () => {
             
             {/* Alternative Logins */}
             <div className="grid grid-cols-2 gap-stack-md">
-              <button type="button" className="h-12 backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl flex items-center justify-center gap-2 hover:bg-white/15 hover:border-white/30 transition-all active:scale-95">
+              <button type="button" className="h-12 backdrop-blur-sm bg-white/5 border border-white/15 rounded-2xl flex items-center justify-center gap-2 hover:bg-white/10 hover:border-white/20 transition-all active:scale-95">
                 <span className="material-symbols-outlined text-xl text-on-surface" style={{ fontVariationSettings: "'FILL' 1" }}>qr_code_scanner</span>
                 <span className="font-label-md text-label-md text-on-surface">QR SCAN</span>
               </button>
-              <button type="button" className="h-12 backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl flex items-center justify-center gap-2 hover:bg-white/15 hover:border-white/30 transition-all active:scale-95">
+              <button type="button" className="h-12 backdrop-blur-sm bg-white/5 border border-white/15 rounded-2xl flex items-center justify-center gap-2 hover:bg-white/10 hover:border-white/20 transition-all active:scale-95">
                 <span className="material-symbols-outlined text-xl text-on-surface" style={{ fontVariationSettings: "'FILL' 1" }}>face_6</span>
                 <span className="font-label-md text-label-md text-on-surface">BIO AUTH</span>
               </button>
