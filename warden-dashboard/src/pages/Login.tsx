@@ -320,7 +320,7 @@ export const Login: React.FC = () => {
             initial="initial"
             whileHover="hover"
             whileTap="tap"
-            className="w-80 h-16 backdrop-blur-sm bg-gradient-to-r from-white/8 to-white/5 rounded-3xl font-headline-md text-on-surface border border-white/15 hover:from-white/12 hover:to-white/8 transition-all flex items-center justify-center gap-stack-sm"
+            className="absolute bottom-[5%] left-1/2 -translate-x-1/2 w-80 h-16 backdrop-blur-sm bg-gradient-to-r from-white/8 to-white/5 rounded-3xl font-headline-md text-on-surface border border-white/15 hover:from-white/12 hover:to-white/8 transition-all flex items-center justify-center gap-stack-sm z-20"
             style={{
               boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.06), inset 0 0 0 1px rgba(255, 255, 255, 0.15)',
               backdropFilter: 'blur(10px)'
