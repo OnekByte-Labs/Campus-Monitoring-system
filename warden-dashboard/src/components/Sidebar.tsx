@@ -13,15 +13,19 @@ const navItems = [
 
 export const Sidebar: React.FC = () => {
   return (
-    <aside className="fixed left-0 top-0 h-screen w-64 bg-surface-container neumorphic-high-lift flex flex-col py-stack-lg gap-stack-md z-50">
+    <aside className="fixed left-0 top-0 h-screen w-64 glass-lg flex flex-col py-stack-lg gap-stack-md z-50">
       <div className="px-margin-desktop mb-stack-lg">
-        <h1 className="font-headline-md text-headline-md text-primary tracking-tighter">OneKByte Labs</h1>
+        <img 
+          alt="OneKByte Labs Logo" 
+          className="h-36 w-auto object-contain"
+          src="/newlogoonekbyte.png"
+        />
         <div className="mt-stack-sm flex items-center gap-stack-sm">
-          <div className="w-10 h-10 rounded-full neumorphic-convex flex items-center justify-center overflow-hidden border border-outline-variant/20">
+          <div className="w-10 h-10 rounded-full glass-sm flex items-center justify-center overflow-hidden">
             <img 
               alt="Admin Avatar" 
               className="w-full h-full object-cover" 
-              src="https://ui-avatars.com/api/?name=Admin+User&background=3a3841&color=e6e0ed" 
+              src="https://ui-avatars.com/api/?name=Admin+User&background=FFF5EE&color=FF8C42" 
             />
           </div>
           <div>
@@ -39,8 +43,8 @@ export const Sidebar: React.FC = () => {
             className={({ isActive }) => 
               `flex items-center gap-stack-md px-stack-md py-stack-md rounded-xl transition-all duration-300 active:scale-95 ` +
               (isActive 
-                ? `neumorphic-inset text-secondary` 
-                : `text-on-surface-variant hover:text-primary hover:neumorphic-convex`)
+                ? `glass-button text-primary` 
+                : `text-on-surface-variant hover:text-primary hover:glass-sm`)
             }
           >
             <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>{item.icon}</span>
@@ -54,8 +58,8 @@ export const Sidebar: React.FC = () => {
             className={({ isActive }) => 
               `flex items-center gap-stack-md px-stack-md py-stack-md rounded-xl transition-all duration-300 active:scale-95 ` +
               (isActive 
-                ? `neumorphic-inset text-secondary` 
-                : `text-on-surface-variant hover:text-primary hover:neumorphic-convex`)
+                ? `glass-button text-primary` 
+                : `text-on-surface-variant hover:text-primary hover:glass-sm`)
             }
           >
             <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>settings</span>
