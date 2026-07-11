@@ -67,11 +67,11 @@ export const Sidebar: React.FC = () => {
           </NavLink>
           <NavLink 
             to="/login"
-            className="flex items-center gap-stack-md px-stack-md py-stack-md rounded-xl text-on-surface-variant hover:text-error hover:neumorphic-convex transition-all duration-300 active:scale-95"
+            className="flex items-center gap-stack-md px-stack-md py-stack-md rounded-xl text-on-surface-variant hover:text-error hover:glass-button transition-all duration-300 active:scale-95"
           >
             <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>logout</span>
             <span className="font-label-md">Logout</span>
-          </NavLink>
+          </button>
         </div>
       </nav>
     </aside>
