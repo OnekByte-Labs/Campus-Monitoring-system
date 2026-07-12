@@ -5,7 +5,7 @@ This project is a resilient, edge-to-cloud facial recognition attendance system.
 To ensure robust data delivery even in spotty network conditions, the edge node acts as an **MQTT Publisher** with a local SQLite buffer. A background sync daemon pushes data to a public MQTT broker (e.g., HiveMQ). A **Node.js** backend listens to the broker and logs the attendance directly to a **Supabase (PostgreSQL)** database.
 
 ---
-
+"TESTING REMOTE"
 ## 🏗 System Architecture
 
 ### 1. Edge Node (NVIDIA Jetson Nano)
