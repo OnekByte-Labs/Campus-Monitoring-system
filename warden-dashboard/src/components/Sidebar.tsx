@@ -1,33 +1,36 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Video, Fingerprint, Users, Router, BrainCircuit, Activity, Settings, LogOut } from 'lucide-react';
 
 const navItems = [
-  { path: '/', label: 'Dashboard', icon: LayoutDashboard },
-  { path: '/surveillance', label: 'Live Feed', icon: Video },
-  { path: '/attendance', label: 'Attendance', icon: Fingerprint },
-  { path: '/students/register', label: 'Resident Logs', icon: Users },
-  { path: '/devices', label: 'Device Registry', icon: Router },
-  { path: '/analytics', label: 'AI Analytics', icon: BrainCircuit },
-  { path: '/insights', label: 'System Health', icon: Activity },
+  { path: '/', label: 'Dashboard', icon: 'dashboard' },
+  { path: '/surveillance', label: 'Live Feed', icon: 'videocam' },
+  { path: '/attendance', label: 'Attendance', icon: 'fingerprint' },
+  { path: '/students/register', label: 'Resident Logs', icon: 'group' },
+  { path: '/devices', label: 'Device Registry', icon: 'router' },
+  { path: '/analytics', label: 'AI Analytics', icon: 'psychology' },
+  { path: '/insights', label: 'System Health', icon: 'sensors' },
 ];
 
 export const Sidebar: React.FC = () => {
   return (
-    <aside className="fixed left-0 top-0 h-screen w-64 bg-surface-container neumorphic-high-lift flex flex-col py-stack-lg gap-stack-md z-50">
+    <aside className="fixed left-0 top-0 h-screen w-64 glass-lg flex flex-col py-stack-lg gap-stack-md z-50">
       <div className="px-margin-desktop mb-stack-lg">
-        <h1 className="font-headline-md text-headline-md text-primary tracking-tighter uppercase font-bold">OneKByte Labs</h1>
+        <img 
+          alt="OneKByte Labs Logo" 
+          className="h-36 w-auto object-contain"
+          src="/newlogoonekbyte.png"
+        />
         <div className="mt-stack-sm flex items-center gap-stack-sm">
-          <div className="w-10 h-10 rounded-full neumorphic-convex flex items-center justify-center overflow-hidden border border-outline-variant/20">
+          <div className="w-10 h-10 rounded-full glass-sm flex items-center justify-center overflow-hidden">
             <img 
               alt="Admin Avatar" 
               className="w-full h-full object-cover" 
-              src="https://ui-avatars.com/api/?name=Admin+User&background=3a3841&color=e6e0ed" 
+              src="https://ui-avatars.com/api/?name=Admin+User&background=FFF5EE&color=FF8C42" 
             />
           </div>
           <div>
             <p className="font-label-md text-label-md text-on-surface">System Controller</p>
-            <p className="text-[10px] text-primary opacity-70 font-mono tracking-widest">NODE: DELTA-04</p>
+            <p className="text-[10px] text-primary opacity-70">V2.4 Active</p>
           </div>
         </div>
       </div>
@@ -40,11 +43,11 @@ export const Sidebar: React.FC = () => {
             className={({ isActive }) => 
               `flex items-center gap-stack-md px-stack-md py-stack-md rounded-xl transition-all duration-300 active:scale-95 ` +
               (isActive 
-                ? `neumorphic-inset text-secondary` 
-                : `text-on-surface-variant hover:text-primary hover:bg-surface-container-high`)
+                ? `glass-button text-primary` 
+                : `text-on-surface-variant hover:text-primary hover:glass-sm`)
             }
           >
-            <item.icon size={20} />
+            <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>{item.icon}</span>
             <span className="font-label-md">{item.label}</span>
           </NavLink>
         ))}
@@ -55,18 +58,18 @@ export const Sidebar: React.FC = () => {
             className={({ isActive }) => 
               `flex items-center gap-stack-md px-stack-md py-stack-md rounded-xl transition-all duration-300 active:scale-95 ` +
               (isActive 
-                ? `neumorphic-inset text-secondary` 
-                : `text-on-surface-variant hover:text-primary hover:bg-surface-container-high`)
+                ? `glass-button text-primary` 
+                : `text-on-surface-variant hover:text-primary hover:glass-sm`)
             }
           >
-            <Settings size={20} />
+            <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>settings</span>
             <span className="font-label-md">Settings</span>
           </NavLink>
           <NavLink 
             to="/login"
-            className="flex items-center gap-stack-md px-stack-md py-stack-md rounded-xl text-on-surface-variant hover:text-error hover:bg-surface-container-high transition-all duration-300 active:scale-95"
+            className="flex items-center gap-stack-md px-stack-md py-stack-md rounded-xl text-on-surface-variant hover:text-error hover:glass-button transition-all duration-300 active:scale-95"
           >
-            <LogOut size={20} />
+            <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>logout</span>
             <span className="font-label-md">Logout</span>
           </NavLink>
         </div>

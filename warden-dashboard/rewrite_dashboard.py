@@ -2,7 +2,6 @@ import re
 with open('/Users/adityakumarsingh/Documents/Face_Detection_Jetson/warden-dashboard/src/pages/Dashboard.tsx', 'r') as f:
     content = f.read()
 
-# I will write the entirely new Dashboard.tsx file in one go because it's a complete structural overhaul.
 new_content = """import React, { useState, useEffect } from 'react';
 import { Users, Activity, Radio, ArrowUpRight, ArrowDownRight, Clock, Video, AlertCircle, Send, CheckCircle2 } from 'lucide-react';
 import axios from 'axios';
@@ -96,7 +95,6 @@ export default function Dashboard() {
     
     setIsSubmitting(true);
     try {
-      // Create a full ISO string for the backend based on today's date + the time picker value
       const today = new Date();
       const [hours, minutes] = lateTime.split(':');
       today.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
@@ -106,7 +104,6 @@ export default function Dashboard() {
         entryTime: today.toISOString(),
         reason: lateReason
       }, {
-        // Mocking API key for development
         headers: { 'x-api-key': 'dev-secret-key' }
       });
 
@@ -145,7 +142,7 @@ export default function Dashboard() {
           <div className="flex items-center justify-between">
             <h2 className="font-headline-md text-[28px] font-bold text-on-surface tracking-tight">Real-Time Analytics</h2>
             <div className="glass-sm px-4 py-2 rounded-full flex items-center gap-2">
-              <div className={`w-2.5 h-2.5 rounded-full ${socketConnected ? 'bg-secondary animate-pulse' : 'bg-error'}`}></div>
+              <div className={`w-2.5 h-2.5 rounded-full ${socketConnected ? 'bg-secondary animate-pulse glow-orange-lg' : 'bg-error'}`}></div>
               <span className="font-mono text-sm text-on-surface-variant">
                 {socketConnected ? 'System Live' : 'Offline'}
               </span>
@@ -157,7 +154,7 @@ export default function Dashboard() {
             <div className="glass-card rounded-3xl p-stack-md border-l-4 border-primary hover:-translate-y-1 transition-transform">
               <div className="flex items-center justify-between mb-unit">
                 <p className="text-label-md font-label-md text-on-surface-variant uppercase tracking-wider">Total Enrolled</p>
-                <Users size={20} className="text-primary opacity-80" />
+                <Users size={20} className="text-primary glow-orange" />
               </div>
               <h3 className="font-headline-lg text-[36px] font-bold text-primary mt-2">{stats.totalEnrolled}</h3>
             </div>
@@ -165,7 +162,7 @@ export default function Dashboard() {
             <div className="glass-card rounded-3xl p-stack-md border-l-4 border-secondary hover:-translate-y-1 transition-transform">
               <div className="flex items-center justify-between mb-unit">
                 <p className="text-label-md font-label-md text-on-surface-variant uppercase tracking-wider">Currently Inside</p>
-                <Activity size={20} className="text-secondary opacity-80" />
+                <Activity size={20} className="text-secondary glow-orange" />
               </div>
               <h3 className="font-headline-lg text-[36px] font-bold text-secondary mt-2">{stats.currentlyInside}</h3>
             </div>
@@ -173,7 +170,7 @@ export default function Dashboard() {
             <div className="glass-card rounded-3xl p-stack-md border-l-4 border-tertiary hover:-translate-y-1 transition-transform">
               <div className="flex items-center justify-between mb-unit">
                 <p className="text-label-md font-label-md text-on-surface-variant uppercase tracking-wider">Currently Outside</p>
-                <ArrowUpRight size={20} className="text-tertiary opacity-80" />
+                <ArrowUpRight size={20} className="text-tertiary glow-orange" />
               </div>
               <h3 className="font-headline-lg text-[36px] font-bold text-tertiary mt-2">{stats.currentlyOutside}</h3>
             </div>
@@ -181,7 +178,7 @@ export default function Dashboard() {
             <div className="glass-card rounded-3xl p-stack-md border-l-4 border-error hover:-translate-y-1 transition-transform">
               <div className="flex items-center justify-between mb-unit">
                 <p className="text-label-md font-label-md text-on-surface-variant uppercase tracking-wider">Late Entries Today</p>
-                <AlertCircle size={20} className="text-error animate-pulse" />
+                <AlertCircle size={20} className="text-error animate-pulse glow-orange" />
               </div>
               <h3 className="font-headline-lg text-[36px] font-bold text-error mt-2">{stats.lateEntriesToday}</h3>
             </div>
@@ -252,6 +249,7 @@ export default function Dashboard() {
                         <th className="pb-4 px-4 font-bold">Status</th>
                         <th className="pb-4 px-4 font-bold">Student</th>
                         <th className="pb-4 px-4 font-bold">Time</th>
+                        <th className="pb-4 px-4 font-bold">Confidence</th>
                         <th className="pb-4 px-4 font-bold">Camera</th>
                       </tr>
                     </thead>
@@ -264,8 +262,8 @@ export default function Dashboard() {
                             <td className="py-3 px-4">
                               <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-bold ${
                                 isEntry 
-                                  ? 'bg-secondary/10 text-secondary border border-secondary/20' 
-                                  : 'bg-on-surface/5 text-on-surface-variant border border-outline-variant/30'
+                                  ? 'bg-secondary/10 text-secondary border border-secondary/20 drop-shadow-[0_0_4px_rgba(0,229,203,0.3)]' 
+                                  : 'bg-error/10 text-error border border-error/20 drop-shadow-[0_0_4px_rgba(255,50,50,0.3)]'
                               }`}>
                                 {isEntry ? <ArrowDownRight size={12} /> : <ArrowUpRight size={12} />}
                                 {isEntry ? 'IN' : 'OUT'}
@@ -277,7 +275,25 @@ export default function Dashboard() {
                                 <span className="text-[11px] font-mono text-on-surface-variant">{log.student_id}</span>
                               </div>
                             </td>
-                            <td className="py-3 px-4 font-mono text-xs text-on-surface-variant">{timeStr}</td>
+                            <td className="py-3 px-4">
+                              <div className="flex items-center gap-2 text-on-surface-variant">
+                                <Clock size={12} />
+                                <span className="font-mono text-[12px]">{timeStr}</span>
+                              </div>
+                            </td>
+                            <td className="py-3 px-4">
+                              <div className="flex items-center gap-2">
+                                <div className="w-16 h-1 bg-background rounded-full overflow-hidden">
+                                  <div 
+                                    className={`h-full rounded-full ${log.similarity_score > 0.8 ? 'bg-secondary' : 'bg-tertiary'}`} 
+                                    style={{ width: `${Math.min(100, log.similarity_score * 100)}%` }}
+                                  />
+                                </div>
+                                <span className="text-[10px] font-mono text-on-surface-variant">
+                                  {(log.similarity_score * 100).toFixed(1)}%
+                                </span>
+                              </div>
+                            </td>
                             <td className="py-3 px-4 text-xs text-on-surface-variant uppercase">{log.camera_id ? `CAM-${log.camera_id}` : 'MANUAL'}</td>
                           </tr>
                         );
@@ -335,4 +351,4 @@ export default function Dashboard() {
 with open('/Users/adityakumarsingh/Documents/Face_Detection_Jetson/warden-dashboard/src/pages/Dashboard.tsx', 'w') as f:
     f.write(new_content)
 
-print("Dashboard.tsx rewritten successfully.")
+print("Dashboard.tsx rewritten successfully with main branch styles.")
