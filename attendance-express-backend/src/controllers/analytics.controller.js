@@ -83,6 +83,73 @@ class AnalyticsController {
       next(error);
     }
   }
+
+  /**
+   * GET /api/v1/analytics/dashboard
+   * Retrieves high-level stats: totalEnrolled, currentlyInside, currentlyOutside, lateEntriesToday
+   */
+  async getDashboardStats(req, res, next) {
+    try {
+      const startOfDay = new Date();
+      startOfDay.setHours(0, 0, 0, 0);
+
+      const endOfDay = new Date();
+      endOfDay.setHours(23, 59, 59, 999);
+
+      // 1. Total Enrolled
+      const totalEnrolled = await prisma.student.count();
+
+      // 2. Currently Inside (Calculate using latest log per student)
+      // Since we don't have a direct raw query easy here without writing raw SQL, 
+      // we'll get the latest log for all students.
+      // Easiest is to fetch all logs ordered by timestamp DESC, then group manually by student ID.
+      // For large production DBs, a RAW SQL query with DISTINCT ON (student_id) is better.
+      const allLogs = await prisma.attendanceLog.findMany({
+        orderBy: { timestamp: 'desc' },
+      });
+
+      const latestLogsMap = new Map();
+      allLogs.forEach(log => {
+        if (!latestLogsMap.has(log.student_id)) {
+          latestLogsMap.set(log.student_id, log.direction);
+        }
+      });
+
+      let currentlyInside = 0;
+      latestLogsMap.forEach((direction) => {
+        if (direction === 'IN') {
+          currentlyInside++;
+        }
+      });
+
+      // 3. Currently Outside
+      const currentlyOutside = totalEnrolled - currentlyInside;
+
+      // 4. Late Entries Today
+      const lateEntriesToday = await prisma.attendanceLog.count({
+        where: {
+          is_late: true,
+          timestamp: {
+            gte: startOfDay,
+            lte: endOfDay
+          }
+        }
+      });
+
+      return res.status(200).json({
+        success: true,
+        data: {
+          totalEnrolled,
+          currentlyInside,
+          currentlyOutside,
+          lateEntriesToday
+        }
+      });
+    } catch (error) {
+      logger.error('Error calculating dashboard stats', error);
+      next(error);
+    }
+  }
 }
 
 module.exports = new AnalyticsController();

@@ -116,6 +116,66 @@ class EventController {
       res.status(502).json({ success: false, error: 'Live feed unavailable or Jetson is offline.' });
     }
   }
+
+  /**
+   * Handle POST manual late entry from dashboard
+   */
+  async logLateEntry(req, res, next) {
+    try {
+      const { studentId, entryTime, reason } = req.body;
+
+      if (!studentId || !entryTime) {
+        return res.status(400).json({ success: false, error: 'Missing studentId or entryTime' });
+      }
+
+      // Convert local time string to Date object
+      const timestamp = new Date(entryTime);
+
+      // Save to database manually using Prisma since eventService.logAttendance is tied to camera logic
+      const { PrismaClient } = require('@prisma/client');
+      const prisma = new PrismaClient();
+
+      // Check if student exists to get name
+      const student = await prisma.student.findUnique({
+        where: { student_id: studentId }
+      });
+
+      const record = await prisma.attendanceLog.create({
+        data: {
+          student_id: studentId,
+          student_name: student ? student.full_name : 'Unknown Student',
+          similarity_score: 1.0, // Manual override is absolute confidence
+          direction: 'IN', // Late entry implies they are entering
+          timestamp: timestamp,
+          is_late: true,
+          reason: reason || null
+        }
+      });
+
+      // Fire Telegram Alert asynchronously
+      const telegramService = require('../services/telegram.service');
+      telegramService.sendLateEntryAlert(studentId, entryTime, reason);
+
+      // Emit socket event so UI updates immediately
+      try {
+        const socketService = require('../services/socket.service');
+        const io = socketService.getIO();
+        io.emit('new_attendance', record);
+      } catch (err) {
+        logger.error('Could not emit new_attendance socket event.');
+      }
+
+      return res.status(201).json({
+        success: true,
+        message: 'Late entry logged successfully',
+        data: record
+      });
+
+    } catch (error) {
+      logger.error('Error logging late entry:', error);
+      next(error);
+    }
+  }
 }
 
 module.exports = new EventController();

@@ -19,6 +19,8 @@ model AttendanceLog {
   similarity_score Float
   direction        String   @default("IN") @db.VarChar(10)
   timestamp        DateTime // Stores exact local time if properly configured
+  is_late          Boolean  @default(false)
+  reason           String?  @db.Text
   created_at       DateTime @default(now())
 
   @@index([student_id])
