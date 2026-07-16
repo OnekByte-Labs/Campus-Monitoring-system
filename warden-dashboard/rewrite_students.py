@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+content = """import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, ChevronRight, UserPlus, Database } from 'lucide-react';
 import { TopBar } from '../components/TopBar';
@@ -111,3 +111,8 @@ export default function Students() {
     </div>
   );
 }
+"""
+
+with open('/Users/adityakumarsingh/Documents/Face_Detection_Jetson/warden-dashboard/src/pages/Students.tsx', 'w') as f:
+    f.write(content)
+print("Students.tsx rewritten")

@@ -7,7 +7,10 @@ import Attendance from './pages/Attendance';
 import Students from './pages/Students';
 import Registration from './pages/Registration';
 import DeviceRegistry from './pages/DeviceRegistry';
+import Settings from './pages/Settings';
 import { Login } from './pages/Login';
+
+import Analytics from './pages/Analytics';
 
 export const App: React.FC = () => {
   return (
@@ -20,9 +23,9 @@ export const App: React.FC = () => {
           <Route path="students" element={<Students />} />
           <Route path="students/register" element={<Registration />} />
           <Route path="devices" element={<DeviceRegistry />} />
-          <Route path="analytics" element={<div className="p-8"><h1 className="text-2xl text-primary">AI Analytics Coming Soon</h1></div>} />
+          <Route path="analytics" element={<Analytics />} />
           <Route path="insights" element={<div className="p-8"><h1 className="text-2xl text-primary">System Health Coming Soon</h1></div>} />
-          <Route path="settings" element={<div className="p-8"><h1 className="text-2xl text-primary">Settings Coming Soon</h1></div>} />
+          <Route path="settings" element={<Settings />} />
         </Route>
         <Route path="/login" element={<Login />} />
       </Routes>

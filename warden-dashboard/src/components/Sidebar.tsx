@@ -5,7 +5,7 @@ const navItems = [
   { path: '/', label: 'Dashboard', icon: 'dashboard' },
   { path: '/surveillance', label: 'Live Feed', icon: 'videocam' },
   { path: '/attendance', label: 'Attendance', icon: 'fingerprint' },
-  { path: '/students/register', label: 'Resident Logs', icon: 'group' },
+  { path: '/students', label: 'Enroll Students', icon: 'group' },
   { path: '/devices', label: 'Device Registry', icon: 'router' },
   { path: '/analytics', label: 'AI Analytics', icon: 'psychology' },
   { path: '/insights', label: 'System Health', icon: 'sensors' },
