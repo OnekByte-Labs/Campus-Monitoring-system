@@ -265,6 +265,26 @@ class AnalyticsController {
       next(error);
     }
   }
+  async getSettings(req, res, next) {
+    try {
+      const alertService = require('../services/alert.service');
+      const settings = alertService.getSettings();
+      res.status(200).json({ success: true, data: settings });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async updateSettings(req, res, next) {
+    try {
+      const alertService = require('../services/alert.service');
+      const newSettings = req.body;
+      const updated = alertService.saveSettings(newSettings);
+      res.status(200).json({ success: true, data: updated, message: 'Settings saved' });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 module.exports = new AnalyticsController();

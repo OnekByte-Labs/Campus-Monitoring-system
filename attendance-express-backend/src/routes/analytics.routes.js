@@ -14,4 +14,10 @@ router.get('/occupancy', analyticsController.getCurrentOccupancy);
 // POST /api/v1/analytics/seed
 router.post('/seed', analyticsController.seedMockData);
 
+// GET /api/v1/analytics/settings
+router.get('/settings', analyticsController.getSettings);
+
+// PUT /api/v1/analytics/settings
+router.put('/settings', analyticsController.updateSettings);
+
 module.exports = router;

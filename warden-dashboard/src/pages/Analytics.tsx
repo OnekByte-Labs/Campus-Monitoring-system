@@ -92,11 +92,11 @@ export default function Analytics() {
                         <td className="py-4 px-4">
                           {student.is_late ? (
                             <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-bold bg-error/10 text-error border border-error/20 drop-shadow-[0_0_4px_rgba(255,50,50,0.3)]">
-                              <AlertTriangle size={12} /> LATE ENTRY
+                              <AlertTriangle size={12} /> {isOutside ? 'LATE EXIT' : 'LATE ENTRY'}
                             </span>
                           ) : (
                             <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-bold bg-secondary/10 text-secondary border border-secondary/20 drop-shadow-[0_0_4px_rgba(0,229,203,0.3)]">
-                              REGULAR ENTRY
+                              {isOutside ? 'REGULAR EXIT' : 'REGULAR ENTRY'}
                             </span>
                           )}
                         </td>

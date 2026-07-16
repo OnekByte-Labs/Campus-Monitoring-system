@@ -142,7 +142,7 @@ export default function Attendance() {
                     </div>
                     {log.is_late && (
                       <button className="px-3 py-2 rounded-lg bg-error/20 text-error font-label-md text-[10px] font-bold active:neu-inset transition-all">
-                        LATE ENTRY
+                        {isEntry ? 'LATE ENTRY' : 'LATE EXIT'}
                       </button>
                     )}
                   </div>

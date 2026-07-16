@@ -40,3 +40,6 @@ warden-dashboard/.vite/deps
 # DeepStream / GStreamer cache
 *.cache
 known_faces/
+
+# Gemini Agents config
+.agents/

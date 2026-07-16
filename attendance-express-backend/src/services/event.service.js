@@ -24,6 +24,31 @@ class EventService {
       // Default to IN if device not found or no role defined
       const direction = device ? device.role : 'IN';
 
+      // Auto-detect Late based on Global Settings (applies to both IN and OUT)
+      let isLate = false;
+      const fs = require('fs');
+      const path = require('path');
+      let startHour = 9;
+      let endHour = 15;
+      try {
+        const configPath = path.join(__dirname, '../../config.json');
+        if (fs.existsSync(configPath)) {
+          const settings = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+          startHour = settings.LATE_HOUR_START ?? 9;
+          endHour = settings.LATE_HOUR_END ?? 15;
+        }
+      } catch (e) {}
+
+      const hours = exactTime.getHours();
+      
+      if (startHour <= endHour) {
+        if (hours >= startHour && hours < endHour) isLate = true;
+      } else {
+        if (hours >= startHour || hours < endHour) isLate = true;
+      }
+
+      console.log(`[DEBUG] Final isLate=${isLate}`);
+
       const record = await prisma.attendanceLog.create({
         data: {
           student_id,
@@ -32,6 +57,7 @@ class EventService {
           similarity_score: parseFloat(similarity_score),
           timestamp: exactTime,
           direction: direction,
+          is_late: isLate
         },
       });
 

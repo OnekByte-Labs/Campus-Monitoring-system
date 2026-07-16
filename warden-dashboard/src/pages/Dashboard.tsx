@@ -71,17 +71,13 @@ export default function Dashboard() {
     socket.on('new_attendance', (newRecord: AttendanceLog) => {
       setLogs((prev) => [newRecord, ...prev]);
       
-      // Optimistically update stats
-      setStats(prev => {
-        const isLate = newRecord.is_late;
-        const isEntry = newRecord.direction === 'IN';
-        return {
-          ...prev,
-          currentlyInside: isEntry ? prev.currentlyInside + 1 : prev.currentlyInside - 1,
-          currentlyOutside: isEntry ? prev.currentlyOutside - 1 : prev.currentlyOutside + 1,
-          lateEntriesToday: isLate ? prev.lateEntriesToday + 1 : prev.lateEntriesToday
-        };
-      });
+      // We will just re-fetch the dashboard stats to ensure perfect sync instead of optimistic math
+      // since one student logging OUT twice could mess up basic +/- math.
+      axios.get('http://localhost:3000/api/v1/analytics/dashboard')
+        .then(res => {
+          if (res.data?.success) setStats(res.data.data);
+        })
+        .catch(err => console.error(err));
     });
 
     return () => { socket.disconnect(); };
@@ -102,7 +98,7 @@ export default function Dashboard() {
         entryTime: today.toISOString(),
         reason: lateReason
       }, {
-        headers: { 'x-api-key': 'dev-secret-key' }
+        headers: { 'x-api-key': import.meta.env.VITE_API_KEY }
       });
 
       if (res.data?.success) {
@@ -328,7 +324,9 @@ export default function Dashboard() {
                       <div key={log.id} className="p-4 rounded-2xl glass-sm border border-error/10 hover:border-error/30 transition-colors">
                         <div className="flex justify-between items-start mb-2">
                           <span className="font-bold text-on-surface text-sm">{log.student_name || 'Unknown'}</span>
-                          <span className="text-[10px] font-mono font-bold bg-error/10 text-error px-2 py-0.5 rounded-full border border-error/20">LATE</span>
+                          <span className="text-[10px] font-mono font-bold bg-error/10 text-error px-2 py-0.5 rounded-full border border-error/20">
+                            {log.direction === 'OUT' ? 'LATE EXIT' : 'LATE ENTRY'}
+                          </span>
                         </div>
                         <div className="flex items-center gap-2 text-xs text-on-surface-variant font-mono mb-2">
                           <Clock size={12} />
